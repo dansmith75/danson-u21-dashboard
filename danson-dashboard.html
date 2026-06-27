@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Danson Sports FC – U21 Red Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #001F3F;      /* Navy */
+      --card: #0b1220;
+      --border: #1f2937;
+      --accent: #D4AF37;  /* Gold */
+      --accent-soft: rgba(212,175,55,0.15);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --success: #D4AF37; /* Gold for GF */
+      --danger: #C8102E;  /* Red for GA / losses */
+      --line: #38bdf8;    /* Sky blue line */
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #020617 0, #001F3F 55%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* Full-page watermark */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      margin: auto;
+      width: 70vw;
+      height: 70vw;
+      max-width: 900px;
+      max-height: 900px;
+      background-image: url("danson-logo.png"); /* <- put your gold crest here */
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      opacity: 0.06; /* very subtle */
+      pointer-events: none;
+      filter: blur(1px);
+      z-index: 0;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 14px 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .crest {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 8px;
+      background-image: url("danson-logo.png"); /* same crest */
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: drop-shadow(0 0 12px rgba(212,175,55,0.6));
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .tab-btn {
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #020617;
+      font-weight: 600;
+      box-shadow: 0 0 18px rgba(212,175,55,0.6);
+    }
+
+    .tab-page { display: none; }
+    .tab-page.active { display: block; }
+
+    .card {
+      background: radial-gradient(circle at top left, var(--accent-soft), #020617 55%);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.7);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .chart-wrapper { height: 260px; }
+    .chart-wrapper.small { height: 200px; }
+
+    @media (max-width: 768px) {
+      .chart-wrapper { height: 220px; }
+      .chart-wrapper.small { height: 180px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="crest"></div>
+      <h1>Danson Sports FC – U21 Red</h1>
+      <p class="subtitle">Season goals & performance dashboard</p>
+    </header>
+
+    <!-- TAB BUTTONS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(event, 'page1')">Match Performance</button>
+      <button class="tab-btn" onclick="switchTab(event, 'page2')">Player Goals</button>
+    </div>
+
+    <!-- PAGE 1 -->
+    <div id="page1" class="tab-page active">
+      <div class="card">
+        <h2>Goals For vs Goals Against</h2>
+        <div class="chart-wrapper">
+          <canvas id="gfGaChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Goal Difference & Result Timeline</h2>
+        <div class="chart-wrapper small">
+          <canvas id="gdResultChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div id="page2" class="tab-page">
+      <div class="card">
+        <h2>Goals by Player</h2>
+        <div class="chart-wrapper">
+          <canvas id="goalsPerPlayerChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // TAB SWITCHING
+    function switchTab(evt, page) {
+      document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(page).classList.add('active');
+      evt.target.classList.add('active');
+    }
+
+    // MATCH DATA (Table 3)
+    const matches = [
+      { opposition: "Hayden Youth", gf: 3, ga: 5, result: "L" },
+      { opposition: "Orpington Town", gf: 7, ga: 0, result: "W" },
+      { opposition: "Crayford Arrows", gf: 5, ga: 1, result: "W" },
+      { opposition: "Junior Reds Spartans", gf: 1, ga: 3, result: "L" },
+      { opposition: "Peoples FC", gf: 12, ga: 0, result: "W" },
+      { opposition: "Dulwich Hamlet FC", gf: 10, ga: 0, result: "W" },
+      { opposition: "Slade Green Knights", gf: 4, ga: 2, result: "W" },
+      { opposition: "Guru Nanak Youth", gf: 4, ga: 4, result: "D" },
+      { opposition: "Kent United FC", gf: 3, ga: 2, result: "W" },
+      { opposition: "Russlers", gf: 2, ga: 3, result: "L" },
+      { opposition: "Slade Green Knights", gf: 7, ga: 1, result: "W" },
+      { opposition: "Guru Nanak Youth", gf: 3, ga: 1, result: "W" },
+      { opposition: "Junior Reds Spartans", gf: 6, ga: 2, result: "W" },
+      { opposition: "Russlers", gf: 4, ga: 2, result: "W" },
+      { opposition: "AFC Lewisham (Abandoned)", gf: 0, ga: 0, result: "W" },
+      { opposition: "FC Elmstead", gf: 3, ga: 6, result: "L" },
+      { opposition: "Danson U18 Kent", gf: 3, ga: 2, result: "W" },
+      { opposition: "AFC Lewisham", gf: 7, ga: 2, result: "W" },
+      { opposition: "Dulwich Hamlet JFC", gf: 0, ga: 0, result: "W" },
+      { opposition: "Our Lady Youth White", gf: 2, ga: 1, result: "W" },
+      { opposition: "Docklands", gf: 1, ga: 2, result: "L" },
+      { opposition: "Junior Reds Spartans", gf: 1, ga: 2, result: "L" },
+      { opposition: "Eversley Rangers White", gf: 0, ga: 3, result: "L" },
+      { opposition: "Meridian Valley Youth", gf: 4, ga: 2, result: "W" },
+      { opposition: "Punjab United", gf: 1, ga: 5, result: "L" },
+      { opposition: "Crayford Arrows", gf: 4, ga: 2, result: "W" },
+      { opposition: "Dason U18", gf: 5, ga: 0, result: "W" }
+    ];
+
+    // PLAYER GOALS (Harley removed)
+    const playerGoals = [
+      { name: "Alf M", goals: 3 },
+      { name: "Alfie F", goals: 31 },
+      { name: "Bailey", goals: 1 },
+      { name: "Brad", goals: 2 },
+      { name: "Callum", goals: 4 },
+      { name: "Danny", goals: 0 },
+      { name: "George", goals: 1 },
+      { name: "Jamie", goals: 8 },
+      { name: "Jay", goals: 3 },
+      { name: "Joe", goals: 8 },
+      { name: "Josh", goals: 2 },
+      { name: "Jude", goals: 0 },
+      { name: "Kalan", goals: 8 },
+      { name: "Kieran D", goals: 1 },
+      { name: "Kieran R", goals: 3 },
+      { name: "Liam", goals: 0 },
+      { name: "Louie", goals: 3 },
+      { name: "Ronnie D", goals: 0 },
+      { name: "Ronnie T", goals: 0 },
+      { name: "Ryeley", goals: 0 },
+      { name: "Will", goals: 1 }
+    ];
+
+    // Plugin to draw numbers above bars
+    Chart.register({
+      id: 'valueAboveBar',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        chart.data.datasets.forEach((dataset, i) => {
+          const meta = chart.getDatasetMeta(i);
+          meta.data.forEach((bar, index) => {
+            const value = dataset.data[index];
+            ctx.save();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(value, bar.x, bar.y - 6);
+            ctx.restore();
+          });
+        });
+      }
+    });
+
+    function renderCharts() {
+      const labels = matches.map(m => m.opposition);
+      const gf = matches.map(m => m.gf);
+      const ga = matches.map(m => m.ga);
+      const gd = matches.map(m => m.gf - m.ga);
+
+      // GF vs GA
+      new Chart(document.getElementById("gfGaChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "GF", data: gf, backgroundColor: varSuccess() },
+            { label: "GA", data: ga, backgroundColor: varDanger() }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: "#e5e7eb" }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: true },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: "#9ca3af", precision: 0 },
+              grid: { color: "rgba(55,65,81,0.6)" }
+            }
+          }
+        }
+      });
+
+      // Goal difference timeline
+      new Chart(document.getElementById("gdResultChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Goal Difference",
+              data: gd,
+              borderColor: varLine(),
+              backgroundColor: "rgba(56,189,248,0.25)",
+              fill: true,
+              tension: 0.25,
+              pointRadius: 3,
+              pointBackgroundColor: gd.map(v => v >= 0 ? varSuccess() : varDanger())
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: "#e5e7eb" }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: true },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: "#9ca3af", precision: 0 },
+              grid: { color: "rgba(55,65,81,0.6)" }
+            }
+          }
+        }
+      });
+
+      // Player goals
+      new Chart(document.getElementById("goalsPerPlayerChart"), {
+        type: "bar",
+        data: {
+          labels: playerGoals.map(p => p.name),
+          datasets: [
+            {
+              label: "Goals",
+              data: playerGoals.map(p => p.goals),
+              backgroundColor: varAccent(),
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: false },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: "#9ca3af", precision: 0 },
+              grid: { color: "rgba(55,65,81,0.6)" }
+            }
+          }
+        }
+      });
+    }
+
+    function varSuccess() { return "#D4AF37"; }
+    function varDanger() { return "#C8102E"; }
+    function varLine() { return "#38bdf8"; }
+    function varAccent() { return "#D4AF37"; }
+
+    renderCharts();
+  </script>
+</body>
+</html>

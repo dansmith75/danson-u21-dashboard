@@ -355,13 +355,22 @@
       );
     }
 
-    loadData().then(() => {
-      document.querySelectorAll("input[type='radio']").forEach(input => {
-        input.addEventListener("change", updateDashboard);
-      });
-
-      updateDashboard();
+  loadData()
+  .then(() => {
+    document.querySelectorAll("input[type='radio']").forEach(input => {
+      input.addEventListener("change", updateDashboard);
     });
-  </script>
-</body>
-</html>
+
+    updateDashboard();
+  })
+  .catch(error => {
+    console.error("Dashboard failed to load:", error);
+    document.querySelector("main").insertAdjacentHTML(
+      "afterbegin",
+      `<div class="card" style="border-left:6px solid red;">
+        <h2>Stats failed to load</h2>
+        <p>Check that the data folder and JSON files exist in GitHub.</p>
+        <p><code>${error}</code></p>
+      </div>`
+    );
+  });

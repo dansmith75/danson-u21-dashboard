@@ -1,1 +1,22 @@
+[
+  {
+    "date": 45900,
+    "opposition": "Hayden Youth",
+    "homeAway": "Away",
+    "competition": "Friendly",
+    "gf": 3,
+    "ga": 5,
+    "result": "Loss"
+  },
+  {
+    "date": 45907,
+    "opposition": "Orpington Town",
+    "homeAway": "Away",
+    "competition": "Friendly",
+    "gf": 7,
+    "ga": 0,
+    "result": "Win"
+  },
+  ...
+]
 

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,6 +44,7 @@
       background: white;
       border-radius: 50%;
       padding: 6px;
+      flex-shrink: 0;
     }
 
     .hero h1 {
@@ -65,9 +65,9 @@
 
     .tabs {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 22px;
-      flex-wrap: wrap;
     }
 
     .tab-btn {
@@ -150,8 +150,9 @@
     }
 
     .chart-box {
-      height: 430px;
       position: relative;
+      height: 430px;
+      width: 100%;
     }
 
     .executive {
@@ -241,7 +242,6 @@
 
   <script>
     const DATA = "data/";
-
     let store = {};
     let charts = {};
 
@@ -251,7 +251,9 @@
 
     async function getJson(file) {
       const response = await fetch(`${DATA}${file}.json`);
-      if (!response.ok) throw new Error(`${file}.json not found`);
+      if (!response.ok) {
+        throw new Error(`${file}.json not found`);
+      }
       return response.json();
     }
 
@@ -264,11 +266,14 @@
     }
 
     function destroyChart(name) {
-      if (charts[name]) charts[name].destroy();
+      if (charts[name]) {
+        charts[name].destroy();
+      }
     }
 
     function drawBar(name, canvasId, labels, data, colour) {
       destroyChart(name);
+
       charts[name] = new Chart(document.getElementById(canvasId), {
         type: "bar",
         data: {
@@ -282,10 +287,21 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false }
+          },
           scales: {
-            x: { ticks: { autoSkip: false, maxRotation: 65, minRotation: 35 } },
-            y: { beginAtZero: true, ticks: { precision: 0 } }
+            x: {
+              ticks: {
+                autoSkip: false,
+                maxRotation: 65,
+                minRotation: 35
+              }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            }
           }
         }
       });
@@ -293,6 +309,7 @@
 
     function drawLine(name, canvasId, labels, data) {
       destroyChart(name);
+
       charts[name] = new Chart(document.getElementById(canvasId), {
         type: "line",
         data: {
@@ -310,15 +327,27 @@
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 } }
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            }
           }
         }
       });
     }
 
-    function playerTotals(rows, field) {
+    function goalTotals(rows) {
       return store.players.map(player =>
-        rows.reduce((sum, row) => sum + Number(row[field]?.[player] || 0), 0)
+        rows.reduce((sum, row) => sum + Number(row.goals?.[player] || 0), 0)
+      );
+    }
+
+    function attendanceTotals(rows) {
+      return store.players.map(player =>
+        rows.reduce((sum, row) => {
+          const value = String(row.attendance?.[player] || "").toUpperCase();
+          return sum + (value === "Y" ? 1 : 0);
+        }, 0)
       );
     }
 
@@ -329,7 +358,6 @@
       const losses = store.matches.filter(m => m.result === "Loss").length;
       const goalsFor = store.matches.reduce((s, m) => s + Number(m.goalsFor || 0), 0);
       const goalsAgainst = store.matches.reduce((s, m) => s + Number(m.goalsAgainst || 0), 0);
-
       const matchAttendances = store.matchAttendance.reduce((s, a) => s + Number(a.count || 0), 0);
       const trainingAttendances = store.trainingAttendance.reduce((s, a) => s + Number(a.count || 0), 0);
 
@@ -345,7 +373,7 @@
       `;
 
       document.getElementById("executiveSummary").innerText =
-        `Danson U21 have played ${games} recorded fixtures, with ${wins} wins, ${draws} draws and ${losses} losses. The team has scored ${goalsFor} goals and conceded ${goalsAgainst}. Attendance tracking is split between match days and training, giving a clearer view of player availability and commitment across the season.`;
+        `Danson U21 have played ${games} recorded fixtures, with ${wins} wins, ${draws} draws and ${losses} losses. The team has scored ${goalsFor} goals and conceded ${goalsAgainst}. Attendance is tracked separately for matches and training, giving a clearer view of player availability and commitment across the season.`;
     }
 
     function goalFilters(row) {
@@ -365,11 +393,11 @@
         "goalsByPlayer",
         "goalsByPlayerChart",
         store.players,
-        playerTotals(filteredGoals, "goals"),
+        goalTotals(filteredGoals),
         "rgba(11, 94, 215, 0.75)"
       );
 
-      const timelineLabels = filteredGoals.map(g => `${g.date} ${g.opposition}`);
+      const timelineLabels = filteredGoals.map(g => `${g.date} - ${g.opposition}`);
       const timelineData = filteredGoals.map(g => Number(g.total || 0));
 
       drawLine(
@@ -385,7 +413,7 @@
         "matchAttendance",
         "matchAttendanceChart",
         store.players,
-        playerTotals(store.matchAttendance, "attendance"),
+        attendanceTotals(store.matchAttendance),
         "rgba(11, 94, 215, 0.75)"
       );
 
@@ -393,9 +421,25 @@
         "trainingAttendance",
         "trainingAttendanceChart",
         store.players,
-        playerTotals(store.trainingAttendance, "attendance"),
+        attendanceTotals(store.trainingAttendance),
         "rgba(244, 197, 66, 0.85)"
       );
+    }
+
+    function renderCurrentPage() {
+      const activePage = document.querySelector(".page.active").id;
+
+      if (activePage === "overview") {
+        renderOverview();
+      }
+
+      if (activePage === "goals") {
+        renderGoals();
+      }
+
+      if (activePage === "attendance") {
+        renderAttendance();
+      }
     }
 
     function setupTabs() {
@@ -407,15 +451,9 @@
           button.classList.add("active");
           document.getElementById(button.dataset.page).classList.add("active");
 
-          renderAll();
+          setTimeout(renderCurrentPage, 50);
         });
       });
-    }
-
-    function renderAll() {
-      renderOverview();
-      renderGoals();
-      renderAttendance();
     }
 
     loadData()
@@ -423,10 +461,12 @@
         setupTabs();
 
         document.querySelectorAll("input[type='radio']").forEach(input => {
-          input.addEventListener("change", renderGoals);
+          input.addEventListener("change", () => {
+            setTimeout(renderCurrentPage, 50);
+          });
         });
 
-        renderAll();
+        renderOverview();
       })
       .catch(error => {
         document.querySelector("main").innerHTML = `

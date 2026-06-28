@@ -44,7 +44,6 @@
       background: white;
       border-radius: 50%;
       padding: 6px;
-      flex-shrink: 0;
     }
 
     .hero h1 {
@@ -63,6 +62,37 @@
       padding: 22px;
     }
 
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: none;
+      background: white;
+      padding: 12px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: var(--shadow);
+    }
+
+    .tab-btn.active {
+      background: var(--navy);
+      color: white;
+      border-bottom: 4px solid var(--gold);
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
     .card,
     .chart-container {
       background: var(--card);
@@ -71,29 +101,6 @@
       box-shadow: var(--shadow);
       margin-bottom: 22px;
       border: 1px solid var(--line);
-    }
-
-    .filters h3 {
-      margin: 18px 0 10px;
-      color: var(--navy);
-    }
-
-    .filters h3:first-child {
-      margin-top: 0;
-    }
-
-    .filters label {
-      display: inline-block;
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: #eef2f7;
-      margin: 5px 6px 5px 0;
-      cursor: pointer;
-    }
-
-    .filters input {
-      margin-right: 6px;
-      accent-color: var(--blue);
     }
 
     .summary {
@@ -117,22 +124,44 @@
       margin-bottom: 6px;
     }
 
+    .filters h3 {
+      margin: 16px 0 10px;
+      color: var(--navy);
+    }
+
+    .filters label {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #eef2f7;
+      margin: 5px 6px 5px 0;
+      cursor: pointer;
+    }
+
+    .filters input {
+      margin-right: 6px;
+      accent-color: var(--blue);
+    }
+
     .chart-title {
-      margin: 0 0 14px;
+      margin-top: 0;
       color: var(--navy);
     }
 
     .chart-box {
-      position: relative;
       height: 430px;
-      width: 100%;
+      position: relative;
     }
 
-    .footer-note {
-      text-align: center;
-      color: #6b7280;
-      font-size: 13px;
-      padding: 10px 0 24px;
+    .executive {
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 650px) {
+      main { padding: 14px; }
+      .hero img { width: 64px; height: 64px; }
+      .chart-box { height: 360px; }
     }
   </style>
 </head>
@@ -147,52 +176,73 @@
   </header>
 
   <main>
-    <section class="card filters">
-      <h3>Competition</h3>
-      <label><input type="radio" name="comp" value="All" checked> All</label>
-      <label><input type="radio" name="comp" value="League"> League</label>
-      <label><input type="radio" name="comp" value="Cup"> Cup</label>
-      <label><input type="radio" name="comp" value="Shield"> Shield</label>
-      <label><input type="radio" name="comp" value="Friendly"> Friendly</label>
-      <label><input type="radio" name="comp" value="Training"> Training</label>
+    <nav class="tabs">
+      <button class="tab-btn active" data-page="overview">Overview</button>
+      <button class="tab-btn" data-page="goals">Goals</button>
+      <button class="tab-btn" data-page="attendance">Attendance</button>
+    </nav>
 
-      <h3>Home / Away</h3>
-      <label><input type="radio" name="ha" value="All" checked> All</label>
-      <label><input type="radio" name="ha" value="Home"> Home</label>
-      <label><input type="radio" name="ha" value="Away"> Away</label>
+    <section id="overview" class="page active">
+      <div class="summary" id="overviewSummary"></div>
 
-      <h3>Result</h3>
-      <label><input type="radio" name="result" value="All" checked> All</label>
-      <label><input type="radio" name="result" value="Win"> Win</label>
-      <label><input type="radio" name="result" value="Draw"> Draw</label>
-      <label><input type="radio" name="result" value="Loss"> Loss</label>
-    </section>
-
-    <section class="summary" id="summary"></section>
-
-    <section class="chart-container">
-      <h2 class="chart-title">Goals by Player</h2>
-      <div class="chart-box">
-        <canvas id="goalsChart"></canvas>
+      <div class="card executive">
+        <h2>Executive Summary</h2>
+        <p id="executiveSummary">Loading summary...</p>
       </div>
     </section>
 
-    <section class="chart-container">
-      <h2 class="chart-title">Attendance by Player</h2>
-      <div class="chart-box">
-        <canvas id="attendanceChart"></canvas>
+    <section id="goals" class="page">
+      <div class="card filters">
+        <h3>Competition</h3>
+        <label><input type="radio" name="goalComp" value="All" checked> All</label>
+        <label><input type="radio" name="goalComp" value="League"> League</label>
+        <label><input type="radio" name="goalComp" value="Cup"> Cup</label>
+        <label><input type="radio" name="goalComp" value="Shield"> Shield</label>
+        <label><input type="radio" name="goalComp" value="Friendly"> Friendly</label>
+
+        <h3>Home / Away</h3>
+        <label><input type="radio" name="goalHA" value="Both" checked> Both</label>
+        <label><input type="radio" name="goalHA" value="Home"> Home</label>
+        <label><input type="radio" name="goalHA" value="Away"> Away</label>
+      </div>
+
+      <div class="chart-container">
+        <h2 class="chart-title">Goals by Player</h2>
+        <div class="chart-box">
+          <canvas id="goalsByPlayerChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h2 class="chart-title">Goals Timeline</h2>
+        <div class="chart-box">
+          <canvas id="goalsTimelineChart"></canvas>
+        </div>
       </div>
     </section>
 
-    <div class="footer-note">Danson U21 • Live dashboard from season data</div>
+    <section id="attendance" class="page">
+      <div class="chart-container">
+        <h2 class="chart-title">Match Attendance</h2>
+        <div class="chart-box">
+          <canvas id="matchAttendanceChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h2 class="chart-title">Training Attendance</h2>
+        <div class="chart-box">
+          <canvas id="trainingAttendanceChart"></canvas>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script>
     const DATA = "data/";
 
-    let goalsChart;
-    let attendanceChart;
     let store = {};
+    let charts = {};
 
     function selected(name) {
       return document.querySelector(`input[name="${name}"]:checked`).value;
@@ -200,44 +250,69 @@
 
     async function getJson(file) {
       const response = await fetch(`${DATA}${file}.json`);
-
-      if (!response.ok) {
-        throw new Error(`${file}.json not found`);
-      }
-
+      if (!response.ok) throw new Error(`${file}.json not found`);
       return response.json();
     }
 
     async function loadData() {
-      const matches = await getJson("matches");
-      const goals = await getJson("goals");
-      const matchAttendance = await getJson("match-attendance");
-      const trainingAttendance = await getJson("training-attendance");
-      const players = await getJson("players");
-
-      store = {
-        matches,
-        goals,
-        matchAttendance,
-        trainingAttendance,
-        players
-      };
+      store.matches = await getJson("matches");
+      store.goals = await getJson("goals");
+      store.matchAttendance = await getJson("match-attendance");
+      store.trainingAttendance = await getJson("training-attendance");
+      store.players = await getJson("players");
     }
 
-    function matchesFilters(item) {
-      const comp = selected("comp");
-      const homeAway = selected("ha");
-      const result = selected("result");
+    function destroyChart(name) {
+      if (charts[name]) charts[name].destroy();
+    }
 
-      if (comp === "Training") {
-        return item.competition === "Training";
-      }
+    function drawBar(name, canvasId, labels, data, colour) {
+      destroyChart(name);
+      charts[name] = new Chart(document.getElementById(canvasId), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: colour,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { autoSkip: false, maxRotation: 65, minRotation: 35 } },
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
+    }
 
-      return (
-        (comp === "All" || item.competition === comp) &&
-        (homeAway === "All" || item.homeAway === homeAway) &&
-        (result === "All" || item.result === result)
-      );
+    function drawLine(name, canvasId, labels, data) {
+      destroyChart(name);
+      charts[name] = new Chart(document.getElementById(canvasId), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Goals",
+            data,
+            borderColor: "#0b5ed7",
+            backgroundColor: "rgba(11, 94, 215, 0.15)",
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
     }
 
     function playerTotals(rows, field) {
@@ -246,107 +321,119 @@
       );
     }
 
-    function drawChart(existingChart, canvasId, labels, data, colour) {
-      if (existingChart) {
-        existingChart.destroy();
-      }
+    function renderOverview() {
+      const games = store.matches.length;
+      const wins = store.matches.filter(m => m.result === "Win").length;
+      const draws = store.matches.filter(m => m.result === "Draw").length;
+      const losses = store.matches.filter(m => m.result === "Loss").length;
+      const goalsFor = store.matches.reduce((s, m) => s + Number(m.goalsFor || 0), 0);
+      const goalsAgainst = store.matches.reduce((s, m) => s + Number(m.goalsAgainst || 0), 0);
 
-      return new Chart(document.getElementById(canvasId), {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: colour,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              ticks: {
-                autoSkip: false,
-                maxRotation: 65,
-                minRotation: 35
-              }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          }
-        }
-      });
-    }
+      const matchAttendances = store.matchAttendance.reduce((s, a) => s + Number(a.count || 0), 0);
+      const trainingAttendances = store.trainingAttendance.reduce((s, a) => s + Number(a.count || 0), 0);
 
-    function updateDashboard() {
-      const filteredMatches = store.matches.filter(matchesFilters);
-      const filteredGoals = store.goals.filter(matchesFilters);
-      const filteredAttendance = [
-        ...store.matchAttendance,
-        ...store.trainingAttendance
-      ].filter(matchesFilters);
-
-      const games = filteredMatches.length;
-      const wins = filteredMatches.filter(match => match.result === "Win").length;
-      const draws = filteredMatches.filter(match => match.result === "Draw").length;
-      const losses = filteredMatches.filter(match => match.result === "Loss").length;
-      const goalsFor = filteredMatches.reduce((sum, match) => sum + Number(match.goalsFor || 0), 0);
-      const goalsAgainst = filteredMatches.reduce((sum, match) => sum + Number(match.goalsAgainst || 0), 0);
-      const attendances = filteredAttendance.reduce((sum, item) => sum + Number(item.count || 0), 0);
-
-      document.getElementById("summary").innerHTML = `
+      document.getElementById("overviewSummary").innerHTML = `
         <div class="stat"><b>${games}</b><span>Games</span></div>
         <div class="stat"><b>${wins}</b><span>Wins</span></div>
         <div class="stat"><b>${draws}</b><span>Draws</span></div>
         <div class="stat"><b>${losses}</b><span>Losses</span></div>
         <div class="stat"><b>${goalsFor}</b><span>Goals For</span></div>
         <div class="stat"><b>${goalsAgainst}</b><span>Goals Against</span></div>
-        <div class="stat"><b>${attendances}</b><span>Total Attendances</span></div>
+        <div class="stat"><b>${matchAttendances}</b><span>Match Attendances</span></div>
+        <div class="stat"><b>${trainingAttendances}</b><span>Training Attendances</span></div>
       `;
 
-      goalsChart = drawChart(
-        goalsChart,
-        "goalsChart",
+      document.getElementById("executiveSummary").innerText =
+        `Danson U21 have played ${games} recorded fixtures, with ${wins} wins, ${draws} draws and ${losses} losses. The team has scored ${goalsFor} goals and conceded ${goalsAgainst}. Attendance tracking is split between match days and training, giving a clearer view of player availability and commitment across the season.`;
+    }
+
+    function goalFilters(row) {
+      const comp = selected("goalComp");
+      const ha = selected("goalHA");
+
+      return (
+        (comp === "All" || row.competition === comp) &&
+        (ha === "Both" || row.homeAway === ha)
+      );
+    }
+
+    function renderGoals() {
+      const filteredGoals = store.goals.filter(goalFilters);
+
+      drawBar(
+        "goalsByPlayer",
+        "goalsByPlayerChart",
         store.players,
         playerTotals(filteredGoals, "goals"),
         "rgba(11, 94, 215, 0.75)"
       );
 
-      attendanceChart = drawChart(
-        attendanceChart,
-        "attendanceChart",
+      const timelineLabels = filteredGoals.map(g => `${g.date} ${g.opposition}`);
+      const timelineData = filteredGoals.map(g => Number(g.total || 0));
+
+      drawLine(
+        "goalsTimeline",
+        "goalsTimelineChart",
+        timelineLabels,
+        timelineData
+      );
+    }
+
+    function renderAttendance() {
+      drawBar(
+        "matchAttendance",
+        "matchAttendanceChart",
         store.players,
-        playerTotals(filteredAttendance, "attendance"),
+        playerTotals(store.matchAttendance, "attendance"),
+        "rgba(11, 94, 215, 0.75)"
+      );
+
+      drawBar(
+        "trainingAttendance",
+        "trainingAttendanceChart",
+        store.players,
+        playerTotals(store.trainingAttendance, "attendance"),
         "rgba(244, 197, 66, 0.85)"
       );
     }
 
+    function setupTabs() {
+      document.querySelectorAll(".tab-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+
+          button.classList.add("active");
+          document.getElementById(button.dataset.page).classList.add("active");
+
+          renderAll();
+        });
+      });
+    }
+
+    function renderAll() {
+      renderOverview();
+      renderGoals();
+      renderAttendance();
+    }
+
     loadData()
       .then(() => {
+        setupTabs();
+
         document.querySelectorAll("input[type='radio']").forEach(input => {
-          input.addEventListener("change", updateDashboard);
+          input.addEventListener("change", renderGoals);
         });
 
-        updateDashboard();
+        renderAll();
       })
       .catch(error => {
-        console.error(error);
-
-        document.querySelector("main").insertAdjacentHTML(
-          "afterbegin",
-          `<div class="card" style="border-left:6px solid red;">
+        document.querySelector("main").innerHTML = `
+          <div class="card" style="border-left:6px solid red;">
             <h2>Stats failed to load</h2>
             <p><code>${error.message}</code></p>
-          </div>`
-        );
+          </div>
+        `;
       });
   </script>
 </body>

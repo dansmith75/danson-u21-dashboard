@@ -15,8 +15,6 @@
       --line: #e2e8f0;
       --primary: #2563eb;
       --accent: #38bdf8;
-      --green: #10b981;
-      --purple: #a855f7;
       --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
     }
 
@@ -29,9 +27,7 @@
       --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -86,7 +82,6 @@
       border-radius: 999px;
       cursor: pointer;
       font-weight: bold;
-      backdrop-filter: blur(10px);
     }
 
     main {
@@ -121,12 +116,9 @@
     .tab-btn.active {
       background: linear-gradient(135deg, #0f172a, #2563eb);
       color: white;
-      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
     }
 
-    .page {
-      display: none;
-    }
+    .page { display: none; }
 
     .page.active {
       display: block;
@@ -164,7 +156,7 @@
       box-shadow: var(--shadow);
       margin-bottom: 22px;
       border: 1px solid var(--line);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      transition: transform 0.25s ease;
     }
 
     .card:hover,
@@ -179,7 +171,6 @@
       padding: 18px;
       border-radius: 20px;
       box-shadow: 0 12px 28px rgba(37, 99, 235, 0.18);
-      transition: transform 0.25s ease;
     }
 
     .stat.training {
@@ -228,7 +219,7 @@
 
     .chart-box {
       position: relative;
-      height: 430px;
+      height: 460px;
       width: 100%;
     }
 
@@ -273,7 +264,7 @@
       }
 
       .chart-box {
-        height: 360px;
+        height: 390px;
       }
     }
   </style>
@@ -373,6 +364,34 @@
     let store = {};
     let charts = {};
 
+    const valueLabelsPlugin = {
+      id: "valueLabelsPlugin",
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        const colour = document.body.classList.contains("dark") ? "#e5e7eb" : "#0f172a";
+
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          const meta = chart.getDatasetMeta(datasetIndex);
+
+          meta.data.forEach((bar, index) => {
+            const value = dataset.data[index];
+
+            if (!value || value === 0) return;
+
+            ctx.save();
+            ctx.fillStyle = colour;
+            ctx.font = "bold 12px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.fillText(value, bar.x, bar.y - 6);
+            ctx.restore();
+          });
+        });
+      }
+    };
+
+    Chart.register(valueLabelsPlugin);
+
     function safeNumber(value) {
       const number = Number(value);
       return Number.isFinite(number) ? number : 0;
@@ -411,6 +430,8 @@
     function drawBar(name, canvasId, labels, data, colour) {
       destroyChart(name);
 
+      const maxValue = Math.max(...data, 0);
+
       charts[name] = new Chart(document.getElementById(canvasId), {
         type: "bar",
         data: {
@@ -428,6 +449,11 @@
             duration: 900,
             easing: "easeOutQuart"
           },
+          layout: {
+            padding: {
+              top: 28
+            }
+          },
           plugins: {
             legend: { display: false }
           },
@@ -443,6 +469,7 @@
             },
             y: {
               beginAtZero: true,
+              suggestedMax: maxValue + 2,
               ticks: {
                 color: chartTextColour(),
                 precision: 0
@@ -482,6 +509,9 @@
           animation: {
             duration: 900,
             easing: "easeOutQuart"
+          },
+          plugins: {
+            valueLabelsPlugin: false
           },
           scales: {
             x: {
@@ -544,9 +574,7 @@
 
       const trainingSessions = store.trainingAttendance.length;
       const trainingAttendances = store.trainingAttendance.reduce((s, a) => s + safeNumber(a.count), 0);
-      const averageTrainingFigure = trainingSessions > 0
-        ? trainingAttendances / trainingSessions
-        : 0;
+      const averageTrainingFigure = trainingSessions > 0 ? trainingAttendances / trainingSessions : 0;
 
       const squadSize = store.players.length;
       const averageTrainingPercentage = trainingSessions > 0 && squadSize > 0

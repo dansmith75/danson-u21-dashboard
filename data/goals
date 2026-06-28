@@ -1,1 +1,34 @@
+[
+  {
+    "date": 45900,
+    "opposition": "Hayden Youth",
+    "competition": "Friendly",
+    "homeAway": "Away",
+    "result": "Loss",
+    "goals": {
+      "Alf M": 0,
+      "Alfie F": 2,
+      "Bailey": 0,
+      "Brad": 0,
+      "Callum": 0,
+      "Danny": 0,
+      "George": 0,
+      "Jamie": 0,
+      "Jay": 0,
+      "Joe": 0,
+      "Josh": 0,
+      "Jude": 0,
+      "Kalan": 0,
+      "Kieran D": 0,
+      "Kieran R": 0,
+      "Liam": 0,
+      "Louie": 0,
+      "Ronnie D": 0,
+      "Ronnie T": 0,
+      "Ryeley": 0,
+      "Will": 1
+    }
+  },
+  ...
+]
 

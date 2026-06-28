@@ -60,4 +60,21 @@
     "goals":{"Alf M":1,"Alfie F":0,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie":0,"Jay":0,"Joe":0,"Josh":0,"Jude":0,"Kalan":0,"Kieran D":0,"Kieran R":0,"Liam":0,"Louie":0,"Ronnie D":0,"Ronnie T":0,"Ryeley":0,"Will":0}
   },
   {"date":46110,"opposition":"Meridian Valley Youth","competition":"Shield","homeAway":"Home","result":"Win",
-    "goals":{"Alf M":1,"Alfie F":2,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie
+    "goals":{"Alf M":1,"Alfie F":2,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie":1,"Jay":0,"Joe":0,"Josh":0,"Jude":0,"Kalan":0,"Kieran D":0,"Kieran R":0,"Liam":0,"Louie":0,"Ronnie D":0,"Ronnie T":0,"Ryeley":0,"Will":0}
+  },
+  {"date":46124,"opposition":"Punjab United","competition":"Shield","homeAway":"Away","result":"Loss",
+    "goals":{"Alf M":0,"Alfie F":0,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie":0,"Jay":0,"Joe":0,"Josh":0,"Jude":0,"Kalan":1,"Kieran D":0,"Kieran R":0,"Liam":0,"Louie":0,"Ronnie D":0,"Ronnie T":0,"Ryeley":0,"Will":0}
+  },
+  {"date":46131,"opposition":"Crayford Arrows","competition":"Friendly","homeAway":"Away","result":"Win",
+    "goals":{"Alf M":0,"Alfie F":4,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie":0,"Jay":0,"Joe":0,"Josh":0,"Jude":0,"Kalan":0,"Kieran D":0,"Kieran R":0,"Liam":0,"Louie":0,"Ronnie D":0,"Ronnie T":0,"Ryeley":0,"Will":0}
+  },
+  {"date":46145,"opposition":"Slade Green Knights (Abandoned)","competition":"Friendly","homeAway":"Away","result":"Draw",
+    "goals":{"Alf M":0,"Alfie F":0,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie":0,"Jay":0,"Joe":0,"Josh":0,"Jude":0,"Kalan":0,"Kieran D":0,"Kieran R":0,"Liam":0,"Louie":0,"Ronnie D":0,"Ronnie T":0,"Ryeley":0,"Will":0}
+  },
+  {"date":46152,"opposition":"Dason U18","competition":"Friendly","homeAway":"Home","result":"Win",
+    "goals":{"Alf M":0,"Alfie F":3,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie":2,"Jay":0,"Joe":0,"Josh":0,"Jude":0,"Kalan":0,"Kieran D":0,"Kieran R":0,"Liam":0,"Louie":0,"Ronnie D":0,"Ronnie T":0,"Ryeley":0,"Will":0}
+  },
+  {"date":46166,"opposition":"Slade Green Knights","competition":"League","homeAway":"Away","result":"Win",
+    "goals":{"Alf M":0,"Alfie F":0,"Bailey":0,"Brad":0,"Callum":0,"Danny":0,"George":0,"Jamie":0,"Jay":0,"Joe":0,"Josh":0,"Jude":0,"Kalan":0,"Kieran D":0,"Kieran R":0,"Liam":0,"Louie":0,"Ronnie D":0,"Ronnie T":0,"Ryeley":0,"Will":0}
+  }
+]

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Danson U21 Dashboard</title>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -19,7 +20,9 @@
       --shadow: 0 8px 24px rgba(7, 29, 58, 0.10);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -41,16 +44,18 @@
     .hero img {
       width: 82px;
       height: 82px;
+      max-width: 82px;
+      max-height: 82px;
       object-fit: contain;
       background: white;
       border-radius: 50%;
       padding: 6px;
+      flex-shrink: 0;
     }
 
     .hero h1 {
       margin: 0;
       font-size: clamp(28px, 5vw, 46px);
-      letter-spacing: -0.5px;
     }
 
     .hero p {
@@ -80,300 +85,12 @@
       color: var(--navy);
     }
 
-    .filters h3:first-child { margin-top: 0; }
+    .filters h3:first-child {
+      margin-top: 0;
+    }
 
     .filters label {
       display: inline-block;
       padding: 8px 14px;
       border-radius: 999px;
       background: #eef2f7;
-      margin: 5px 6px 5px 0;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.15s ease;
-    }
-
-    .filters label:hover {
-      background: #dbeafe;
-      border-color: #bfdbfe;
-    }
-
-    .filters input {
-      margin-right: 6px;
-      accent-color: var(--blue);
-    }
-
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-      gap: 14px;
-      margin-bottom: 22px;
-    }
-
-    .stat {
-      background: linear-gradient(135deg, var(--navy), var(--blue));
-      color: white;
-      padding: 18px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border-bottom: 4px solid var(--gold);
-    }
-
-    .stat b {
-      display: block;
-      font-size: 32px;
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-
-    .stat span {
-      color: #e5efff;
-      font-size: 14px;
-    }
-
-    .chart-title {
-      margin: 0 0 14px;
-      color: var(--navy);
-      font-size: 20px;
-    }
-
-    canvas {
-      width: 100% !important;
-      max-height: 430px !important;
-    }
-
-    .footer-note {
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-      padding: 10px 0 24px;
-    }
-
-    @media (max-width: 650px) {
-      .hero {
-        align-items: flex-start;
-        padding: 20px;
-      }
-
-      .hero img {
-        width: 64px;
-        height: 64px;
-      }
-
-      main {
-        padding: 14px;
-      }
-
-      .card,
-      .chart-container {
-        padding: 15px;
-        border-radius: 14px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <header class="hero">
-    <img src="Danson-Logo.png" alt="Danson logo" />
-    <div>
-      <h1>Danson U21 Dashboard</h1>
-      <p>2025/26 Season Statistics</p>
-    </div>
-  </header>
-
-  <main>
-    <section class="card filters">
-      <h3>Competition</h3>
-      <label><input type="radio" name="comp" value="All" checked> All</label>
-      <label><input type="radio" name="comp" value="League"> League</label>
-      <label><input type="radio" name="comp" value="Cup"> Cup</label>
-      <label><input type="radio" name="comp" value="Shield"> Shield</label>
-      <label><input type="radio" name="comp" value="Friendly"> Friendly</label>
-      <label><input type="radio" name="comp" value="Training"> Training</label>
-
-      <h3>Home / Away</h3>
-      <label><input type="radio" name="ha" value="All" checked> All</label>
-      <label><input type="radio" name="ha" value="Home"> Home</label>
-      <label><input type="radio" name="ha" value="Away"> Away</label>
-
-      <h3>Result</h3>
-      <label><input type="radio" name="result" value="All" checked> All</label>
-      <label><input type="radio" name="result" value="Win"> Win</label>
-      <label><input type="radio" name="result" value="Draw"> Draw</label>
-      <label><input type="radio" name="result" value="Loss"> Loss</label>
-    </section>
-
-    <section class="summary" id="summary"></section>
-
-    <section class="chart-container">
-      <h2 class="chart-title">Goals by Player</h2>
-      <canvas id="goalsChart"></canvas>
-    </section>
-
-    <section class="chart-container">
-      <h2 class="chart-title">Attendance by Player</h2>
-      <canvas id="attendanceChart"></canvas>
-    </section>
-
-    <div class="footer-note">Danson U21 • Live dashboard from season data</div>
-  </main>
-
-  <script>
-    const DATA = "data/";
-    let goalsChart;
-    let attendanceChart;
-    let store = {};
-
-    function selected(name) {
-      return document.querySelector(`input[name="${name}"]:checked`).value;
-    }
-
-    async function loadData() {
-      const files = [
-        "matches",
-        "goals",
-        "match-attendance",
-        "training-attendance",
-        "players"
-      ];
-
-      const results = await Promise.all(
-        files.map(file => fetch(`${DATA}${file}.json`).then(response => response.json()))
-      );
-
-      store = {
-        matches: results[0],
-        goals: results[1],
-        matchAttendance: results[2],
-        trainingAttendance: results[3],
-        players: results[4]
-      };
-    }
-
-    function matchesFilters(item) {
-      const comp = selected("comp");
-      const homeAway = selected("ha");
-      const result = selected("result");
-
-      if (comp === "Training") {
-        return item.competition === "Training";
-      }
-
-      return (
-        (comp === "All" || item.competition === comp) &&
-        (homeAway === "All" || item.homeAway === homeAway) &&
-        (result === "All" || item.result === result)
-      );
-    }
-
-    function playerTotals(rows, field) {
-      return store.players.map(player =>
-        rows.reduce((sum, row) => sum + Number(row[field]?.[player] || 0), 0)
-      );
-    }
-
-    function drawChart(existingChart, canvasId, label, labels, data, colour) {
-      if (existingChart) existingChart.destroy();
-
-      return new Chart(document.getElementById(canvasId), {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label,
-            data,
-            backgroundColor: colour,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              ticks: {
-                autoSkip: false,
-                maxRotation: 65,
-                minRotation: 35
-              }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { precision: 0 }
-            }
-          }
-        }
-      });
-    }
-
-    function updateDashboard() {
-      const filteredMatches = store.matches.filter(matchesFilters);
-      const filteredGoals = store.goals.filter(matchesFilters);
-      const filteredAttendance = [
-        ...store.matchAttendance,
-        ...store.trainingAttendance
-      ].filter(matchesFilters);
-
-      const games = filteredMatches.length;
-      const wins = filteredMatches.filter(match => match.result === "Win").length;
-      const draws = filteredMatches.filter(match => match.result === "Draw").length;
-      const losses = filteredMatches.filter(match => match.result === "Loss").length;
-      const goalsFor = filteredMatches.reduce((sum, match) => sum + Number(match.goalsFor || 0), 0);
-      const goalsAgainst = filteredMatches.reduce((sum, match) => sum + Number(match.goalsAgainst || 0), 0);
-      const attendances = filteredAttendance.reduce((sum, item) => sum + Number(item.count || 0), 0);
-
-      document.getElementById("summary").innerHTML = `
-        <div class="stat"><b>${games}</b><span>Games</span></div>
-        <div class="stat"><b>${wins}</b><span>Wins</span></div>
-        <div class="stat"><b>${draws}</b><span>Draws</span></div>
-        <div class="stat"><b>${losses}</b><span>Losses</span></div>
-        <div class="stat"><b>${goalsFor}</b><span>Goals For</span></div>
-        <div class="stat"><b>${goalsAgainst}</b><span>Goals Against</span></div>
-        <div class="stat"><b>${attendances}</b><span>Total Attendances</span></div>
-      `;
-
-      goalsChart = drawChart(
-        goalsChart,
-        "goalsChart",
-        "Goals",
-        store.players,
-        playerTotals(filteredGoals, "goals"),
-        "rgba(11, 94, 215, 0.75)"
-      );
-
-      attendanceChart = drawChart(
-        attendanceChart,
-        "attendanceChart",
-        "Attendance",
-        store.players,
-        playerTotals(filteredAttendance, "attendance"),
-        "rgba(244, 197, 66, 0.85)"
-      );
-    }
-
-  loadData()
-  .then(() => {
-    document.querySelectorAll("input[type='radio']").forEach(input => {
-      input.addEventListener("change", updateDashboard);
-    });
-
-    updateDashboard();
-  })
-  .catch(error => {
-    console.error("Dashboard failed to load:", error);
-    document.querySelector("main").insertAdjacentHTML(
-      "afterbegin",
-      `<div class="card" style="border-left:6px solid red;">
-        <h2>Stats failed to load</h2>
-        <p>Check that the data folder and JSON files exist in GitHub.</p>
-        <p><code>${error}</code></p>
-      </div>`
-    );
-  });
-    </script>
-</body>
-</html>

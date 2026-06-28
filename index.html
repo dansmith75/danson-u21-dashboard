@@ -272,3 +272,380 @@
 
 <body>
   <header class="hero">
+    <div class="hero-left">
+      <img src="Danson-Logo.png" alt="Danson logo">
+      <div>
+        <h1>Danson U21 Dashboard</h1>
+        <p>2025/26 Season Statistics</p>
+      </div>
+    </div>
+
+    <button class="theme-toggle" id="themeToggle">Dark Mode</button>
+  </header>
+
+  <main>
+    <nav class="tabs">
+      <button class="tab-btn active" data-page="overview">Overview</button>
+      <button class="tab-btn" data-page="goals">Goals</button>
+      <button class="tab-btn" data-page="attendance">Attendance</button>
+    </nav>
+
+    <section id="overview" class="page active">
+      <div class="summary" id="overviewSummary"></div>
+
+      <div class="card executive">
+        <h2>Executive Summary</h2>
+        <p id="executiveSummary">Loading summary...</p>
+      </div>
+    </section>
+
+    <section id="goals" class="page">
+      <div class="card filters">
+        <h3>Competition</h3>
+        <label><input type="radio" name="goalComp" value="All" checked> All</label>
+        <label><input type="radio" name="goalComp" value="League"> League</label>
+        <label><input type="radio" name="goalComp" value="Cup"> Cup</label>
+        <label><input type="radio" name="goalComp" value="Shield"> Shield</label>
+        <label><input type="radio" name="goalComp" value="Friendly"> Friendly</label>
+
+        <h3>Home / Away</h3>
+        <label><input type="radio" name="goalHA" value="Both" checked> Both</label>
+        <label><input type="radio" name="goalHA" value="Home"> Home</label>
+        <label><input type="radio" name="goalHA" value="Away"> Away</label>
+      </div>
+
+      <div class="chart-container">
+        <h2 class="chart-title">Goals by Player</h2>
+        <div class="chart-box">
+          <canvas id="goalsByPlayerChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h2 class="chart-title">Goals Timeline</h2>
+        <div class="chart-box">
+          <canvas id="goalsTimelineChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="attendance" class="page">
+      <div class="chart-container">
+        <h2 class="chart-title">Match Attendance</h2>
+        <div class="chart-box">
+          <canvas id="matchAttendanceChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h2 class="chart-title">Training Attendance</h2>
+        <div class="chart-box">
+          <canvas id="trainingAttendanceChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DATA = "data/";
+    let store = {};
+    let charts = {};
+
+    function safeNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function selected(name) {
+      return document.querySelector(`input[name="${name}"]:checked`).value;
+    }
+
+    async function getJson(file) {
+      const response = await fetch(`${DATA}${file}.json`);
+      if (!response.ok) throw new Error(`${file}.json not found`);
+      return response.json();
+    }
+
+    async function loadData() {
+      store.matches = await getJson("matches");
+      store.goals = await getJson("goals");
+      store.matchAttendance = await getJson("match-attendance");
+      store.trainingAttendance = await getJson("training-attendance");
+      store.players = await getJson("players");
+    }
+
+    function isCompetitive(match) {
+      return ["League", "Cup", "Shield"].includes(match.competition);
+    }
+
+    function destroyChart(name) {
+      if (charts[name]) charts[name].destroy();
+    }
+
+    function chartTextColour() {
+      return document.body.classList.contains("dark") ? "#e5e7eb" : "#0f172a";
+    }
+
+    function drawBar(name, canvasId, labels, data, colour) {
+      destroyChart(name);
+
+      charts[name] = new Chart(document.getElementById(canvasId), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: colour,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 900,
+            easing: "easeOutQuart"
+          },
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: chartTextColour(),
+                autoSkip: false,
+                maxRotation: 65,
+                minRotation: 35
+              },
+              grid: { display: false }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: chartTextColour(),
+                precision: 0
+              },
+              grid: {
+                color: document.body.classList.contains("dark")
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(15,23,42,0.08)"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function drawLine(name, canvasId, labels, data) {
+      destroyChart(name);
+
+      charts[name] = new Chart(document.getElementById(canvasId), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Goals",
+            data,
+            borderColor: "#38bdf8",
+            backgroundColor: "rgba(56, 189, 248, 0.16)",
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 900,
+            easing: "easeOutQuart"
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: chartTextColour(),
+                maxRotation: 65,
+                minRotation: 35
+              },
+              grid: { display: false }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: chartTextColour(),
+                precision: 0
+              },
+              grid: {
+                color: document.body.classList.contains("dark")
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(15,23,42,0.08)"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function goalTotals(rows) {
+      return store.players.map(player =>
+        rows.reduce((sum, row) => sum + safeNumber(row.goals?.[player]), 0)
+      );
+    }
+
+    function attendanceTotals(rows) {
+      return store.players.map(player =>
+        rows.reduce((sum, row) => {
+          const value = String(row.attendance?.[player] || "").toUpperCase();
+          return sum + (value === "Y" ? 1 : 0);
+        }, 0)
+      );
+    }
+
+    function renderOverview() {
+      const competitiveMatches = store.matches.filter(isCompetitive);
+      const friendlies = store.matches.filter(m => m.competition === "Friendly");
+      const trainingSessions = store.trainingAttendance.length;
+
+      const competitiveWins = competitiveMatches.filter(m => m.result === "Win").length;
+      const competitiveDraws = competitiveMatches.filter(m => m.result === "Draw").length;
+      const competitiveLosses = competitiveMatches.filter(m => m.result === "Loss").length;
+
+      const competitiveGoalsFor = competitiveMatches.reduce((s, m) => s + safeNumber(m.goalsFor), 0);
+      const competitiveGoalsAgainst = competitiveMatches.reduce((s, m) => s + safeNumber(m.goalsAgainst), 0);
+      const friendlyGoalsFor = friendlies.reduce((s, m) => s + safeNumber(m.goalsFor), 0);
+
+      const matchAttendances = store.matchAttendance.reduce((s, a) => s + safeNumber(a.count), 0);
+      const trainingAttendances = store.trainingAttendance.reduce((s, a) => s + safeNumber(a.count), 0);
+
+      document.getElementById("overviewSummary").innerHTML = `
+        <div class="stat"><b>${competitiveMatches.length}</b><span>Competitive Games</span></div>
+        <div class="stat"><b>${competitiveWins}</b><span>Competitive Wins</span></div>
+        <div class="stat"><b>${competitiveDraws}</b><span>Competitive Draws</span></div>
+        <div class="stat"><b>${competitiveLosses}</b><span>Competitive Losses</span></div>
+        <div class="stat"><b>${competitiveGoalsFor}</b><span>Competitive Goals For</span></div>
+        <div class="stat"><b>${competitiveGoalsAgainst}</b><span>Competitive Goals Against</span></div>
+        <div class="stat friendly"><b>${friendlies.length}</b><span>Friendlies</span></div>
+        <div class="stat friendly"><b>${friendlyGoalsFor}</b><span>Friendly Goals</span></div>
+        <div class="stat"><b>${matchAttendances}</b><span>Match Attendances</span></div>
+        <div class="stat training"><b>${trainingSessions}</b><span>Training Sessions</span></div>
+        <div class="stat training"><b>${trainingAttendances}</b><span>Training Attendances</span></div>
+      `;
+
+      document.getElementById("executiveSummary").innerText =
+        `Danson U21 have recorded ${competitiveMatches.length} competitive fixtures, made up of League, Cup and Shield matches. In those competitive games, the team has ${competitiveWins} wins, ${competitiveDraws} draws and ${competitiveLosses} losses, scoring ${competitiveGoalsFor} and conceding ${competitiveGoalsAgainst}. Friendly matches are separated from competitive performance, with ${friendlies.length} friendlies recorded. Training is also separated from match activity, with ${trainingSessions} training sessions and ${trainingAttendances} total training attendances logged.`;
+    }
+
+    function goalFilters(row) {
+      const comp = selected("goalComp");
+      const ha = selected("goalHA");
+
+      return (
+        (comp === "All" || row.competition === comp) &&
+        (ha === "Both" || row.homeAway === ha)
+      );
+    }
+
+    function renderGoals() {
+      const filteredGoals = store.goals.filter(goalFilters);
+
+      drawBar(
+        "goalsByPlayer",
+        "goalsByPlayerChart",
+        store.players,
+        goalTotals(filteredGoals),
+        "rgba(37, 99, 235, 0.78)"
+      );
+
+      drawLine(
+        "goalsTimeline",
+        "goalsTimelineChart",
+        filteredGoals.map(g => `${g.date} - ${g.opposition}`),
+        filteredGoals.map(g => safeNumber(g.total))
+      );
+    }
+
+    function renderAttendance() {
+      drawBar(
+        "matchAttendance",
+        "matchAttendanceChart",
+        store.players,
+        attendanceTotals(store.matchAttendance),
+        "rgba(37, 99, 235, 0.78)"
+      );
+
+      drawBar(
+        "trainingAttendance",
+        "trainingAttendanceChart",
+        store.players,
+        attendanceTotals(store.trainingAttendance),
+        "rgba(16, 185, 129, 0.82)"
+      );
+    }
+
+    function renderCurrentPage() {
+      const activePage = document.querySelector(".page.active").id;
+
+      if (activePage === "overview") renderOverview();
+      if (activePage === "goals") renderGoals();
+      if (activePage === "attendance") renderAttendance();
+    }
+
+    function setupTabs() {
+      document.querySelectorAll(".tab-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+
+          button.classList.add("active");
+          document.getElementById(button.dataset.page).classList.add("active");
+
+          setTimeout(renderCurrentPage, 80);
+        });
+      });
+    }
+
+    function setupDarkMode() {
+      const toggle = document.getElementById("themeToggle");
+      const savedTheme = localStorage.getItem("theme");
+
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark");
+        toggle.textContent = "Light Mode";
+      }
+
+      toggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        toggle.textContent = isDark ? "Light Mode" : "Dark Mode";
+
+        setTimeout(renderCurrentPage, 80);
+      });
+    }
+
+    loadData()
+      .then(() => {
+        setupTabs();
+        setupDarkMode();
+
+        document.querySelectorAll("input[type='radio']").forEach(input => {
+          input.addEventListener("change", () => {
+            setTimeout(renderCurrentPage, 80);
+          });
+        });
+
+        renderOverview();
+      })
+      .catch(error => {
+        document.querySelector("main").innerHTML = `
+          <div class="card" style="border-left:6px solid red;">
+            <h2>Stats failed to load</h2>
+            <p><code>${error.message}</code></p>
+          </div>
+        `;
+      });
+  </script>
+</body>
+</html>

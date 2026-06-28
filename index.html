@@ -1,634 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Danson Sports FC – U21 Red Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    :root {
-      --bg: #001F3F;
-      --card: #0b1220;
-      --border: #1f2937;
-      --accent: #D4AF37;
-      --accent-soft: rgba(212,175,55,0.15);
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-      --danger: #C8102E;
-      --line: #38bdf8;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #020617 0, #001F3F 55%);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-      position: relative;
-      min-height: 100vh;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      margin: auto;
-      width: 70vw;
-      height: 70vw;
-      max-width: 900px;
-      max-height: 900px;
-      background-image: url("danson-logo.png");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
-      opacity: 0.06;
-      pointer-events: none;
-      filter: blur(1px);
-      z-index: 0;
-    }
-
-    .page {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px 14px 40px;
-      position: relative;
-      z-index: 1;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 18px;
-    }
-
-    .crest {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 8px;
-      background-image: url("danson-logo.png");
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      filter: drop-shadow(0 0 12px rgba(212,175,55,0.6));
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 1.7rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .subtitle {
-      margin: 4px 0 0;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 20px 0;
-    }
-
-    .tab-btn {
-      padding: 9px 18px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: #020617;
-      color: var(--text);
-      cursor: pointer;
-      font-size: 0.9rem;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .tab-btn.active {
-      background: var(--accent);
-      color: #020617;
-      font-weight: 600;
-      box-shadow: 0 0 18px rgba(212,175,55,0.6);
-    }
-
-    .tab-page { display: none; }
-    .tab-page.active { display: block; }
-
-    .card {
-      background: radial-gradient(circle at top left, var(--accent-soft), #020617 55%);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      padding: 16px;
-      margin-bottom: 20px;
-      box-shadow: 0 18px 40px rgba(15,23,42,0.7);
-    }
-
-    .card h2 {
-      margin: 0 0 10px;
-      font-size: 1rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .chart-wrapper { height: 260px; }
-    .chart-wrapper.small { height: 200px; }
-
-    .filter-group {
-      margin-top: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-    }
-
-    .filter-block {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 160px;
-    }
-
-    .filter-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .filter-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 10px;
-      font-size: 0.8rem;
-    }
-
-    .filter-options label {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-    }
-
-    .filter-options input[type="radio"] {
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-      .chart-wrapper { height: 220px; }
-      .chart-wrapper.small { height: 180px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Danson U21 Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: Arial; margin: 20px; }
+  .chart-container { width: 100%; max-width: 900px; margin-bottom: 40px; }
+  .filters { margin-bottom: 20px; }
+  .filters label { margin-right: 15px; }
+</style>
 </head>
 
 <body>
-  <div class="page">
-    <header>
-      <div class="crest"></div>
-      <h1>Danson Sports FC – U21 Red</h1>
-      <p class="subtitle">Season goals & performance dashboard</p>
-    </header>
+<h1>Danson U21 Dashboard</h1>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'page1')">Match Performance</button>
-      <button class="tab-btn" onclick="switchTab(event, 'page2')">Player Goals</button>
-      <button class="tab-btn" onclick="switchTab(event, 'page3')">Attendance</button>
-    </div>
+<div class="filters">
+  <h3>Competition</h3>
+  <label><input type="radio" name="comp" value="All" checked> All</label>
+  <label><input type="radio" name="comp" value="League"> League</label>
+  <label><input type="radio" name="comp" value="Cup"> Cup</label>
+  <label><input type="radio" name="comp" value="Shield"> Shield</label>
+  <label><input type="radio" name="comp" value="Friendly"> Friendly</label>
+  <label><input type="radio" name="comp" value="Training"> Training</label>
 
-    <!-- SHARED FILTERS -->
-    <div class="card" style="margin-bottom: 12px;">
-      <h2>Filters</h2>
+  <h3>Home / Away</h3>
+  <label><input type="radio" name="ha" value="All" checked> All</label>
+  <label><input type="radio" name="ha" value="Home"> Home</label>
+  <label><input type="radio" name="ha" value="Away"> Away</label>
 
-      <div class="filter-group">
-        <div class="filter-block">
-          <span class="filter-label">Competition</span>
-          <div class="filter-options">
-            <label><input type="radio" name="comp" value="All" checked onchange="updateAllCharts()"> All</label>
-            <label><input type="radio" name="comp" value="League" onchange="updateAllCharts()"> League</label>
-            <label><input type="radio" name="comp" value="Cup" onchange="updateAllCharts()"> Cup</label>
-            <label><input type="radio" name="comp" value="Shield" onchange="updateAllCharts()"> Shield</label>
-            <label><input type="radio" name="comp" value="Friendly" onchange="updateAllCharts()"> Friendly</label>
-            <label><input type="radio" name="comp" value="Training" onchange="updateAllCharts()"> Training</label>
-          </div>
-        </div>
+  <h3>Result</h3>
+  <label><input type="radio" name="result" value="All" checked> All</label>
+  <label><input type="radio" name="result" value="Win"> Win</label>
+  <label><input type="radio" name="result" value="Draw"> Draw</label>
+  <label><input type="radio" name="result" value="Loss"> Loss</label>
+</div>
 
-        <div class="filter-block">
-          <span class="filter-label">Venue</span>
-          <div class="filter-options">
-            <label><input type="radio" name="ha" value="All" checked onchange="updateAllCharts()"> All</label>
-            <label><input type="radio" name="ha" value="Home" onchange="updateAllCharts()"> Home</label>
-            <label><input type="radio" name="ha" value="Away" onchange="updateAllCharts()"> Away</label>
-          </div>
-        </div>
+<div class="chart-container">
+  <canvas id="goalsChart"></canvas>
+</div>
 
-        <div class="filter-block">
-          <span class="filter-label">Result</span>
-          <div class="filter-options">
-            <label><input type="radio" name="result" value="All" checked onchange="updateAllCharts()"> All</label>
-            <label><input type="radio" name="result" value="Win" onchange="updateAllCharts()"> Wins</label>
-            <label><input type="radio" name="result" value="Draw" onchange="updateAllCharts()"> Draws</label>
-            <label><input type="radio" name="result" value="Loss" onchange="updateAllCharts()"> Losses</label>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="chart-container">
+  <canvas id="attendanceChart"></canvas>
+</div>
 
-    <!-- PAGE 1 -->
-    <div id="page1" class="tab-page active">
-      <div class="card">
-        <h2>Goals For vs Goals Against</h2>
-        <div class="chart-wrapper">
-          <canvas id="gfGaChart"></canvas>
-        </div>
-      </div>
+<script>
+async function loadData() {
+  const base = "https://raw.githubusercontent.com/dansmith75/danson-u21-dashboard/main/data";
 
-      <div class="card">
-        <h2>Goal Difference Timeline</h2>
-        <div class="chart-wrapper small">
-          <canvas id="gdResultChart"></canvas>
-        </div>
-      </div>
-    </div>
+  const [matches, goals, matchAtt, trainAtt] = await Promise.all([
+    fetch(`${base}/matches.json`).then(r => r.json()),
+    fetch(`${base}/goals.json`).then(r => r.json()),
+    fetch(`${base}/match-attendance.json`).then(r => r.json()),
+    fetch(`${base}/training-attendance.json`).then(r => r.json())
+  ]);
 
-    <!-- PAGE 2 -->
-    <div id="page2" class="tab-page">
-      <div class="card">
-        <h2>Goals by Player</h2>
-        <div class="chart-wrapper">
-          <canvas id="goalsPerPlayerChart"></canvas>
-        </div>
-      </div>
-    </div>
+  const attendance = [...matchAtt, ...trainAtt];
+  return { matches, goals, attendance };
+}
 
-    <!-- PAGE 3 -->
-    <div id="page3" class="tab-page">
-      <div class="card">
-        <h2>Attendance % by Player</h2>
-        <div class="chart-wrapper">
-          <canvas id="attendancePlayerChart"></canvas>
-        </div>
-      </div>
+function getRadioValue(name) {
+  return document.querySelector(`input[name="${name}"]:checked`).value;
+}
 
-      <div class="card">
-        <h2>Attendance % by Competition</h2>
-        <div class="chart-wrapper small">
-          <canvas id="attendanceCompChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
+function filterAttendance(attendance) {
+  const comp = getRadioValue("comp");
+  const ha = getRadioValue("ha");
+  const res = getRadioValue("result");
 
-  <script>
-    function switchTab(evt, page) {
-      document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(page).classList.add('active');
-      evt.target.classList.add('active');
+  return attendance.filter(a => {
+    if (a.type === "Training") {
+      return comp === "All" || comp === "Training";
     }
 
-    let matches = [];
-    let goals = [];
-    let attendance = [];
+    const compOK = (comp === "All" || a.competition === comp);
+    const haOK = (ha === "All" || a.homeAway === ha);
+    const resOK = (res === "All" || a.result === res);
 
-    let gfGaChart;
-    let gdResultChart;
-    let goalsPerPlayerChart;
-    let attendancePlayerChart;
-    let attendanceCompChart;
+    return compOK && haOK && resOK;
+  });
+}
 
-    const playerNames = [
-      "Alf M","Alfie F","Bailey","Brad","Callum","Danny","George",
-      "Harley","Jamie","Jay","Joe","Josh","Jude","Kalan",
-      "Kieran D","Kieran R","Liam","Louie","Ronnie D","Ronnie T","Ryeley","Will"
-    ];
+function filterGoals(goals) {
+  const comp = getRadioValue("comp");
+  const ha = getRadioValue("ha");
+  const res = getRadioValue("result");
 
-    function getRadioValue(name) {
-      const checked = document.querySelector(`input[name="${name}"]:checked`);
-      return checked ? checked.value : "All";
+  return goals.filter(g => {
+    const compOK = (comp === "All" || g.competition === comp);
+    const haOK = (ha === "All" || g.homeAway === ha);
+    const resOK = (res === "All" || g.result === res);
+    return compOK && haOK && resOK;
+  });
+}
+
+function renderCharts(goals, attendance) {
+  const players = Object.keys(goals[0].goals);
+
+  const goalTotals = players.map(p =>
+    goals.reduce((sum, g) => sum + g.goals[p], 0)
+  );
+
+  const attTotals = players.map(p =>
+    attendance.reduce((sum, a) => {
+      const code = a.attendance[p];
+      return sum + (code === "Y" ? 1 : 0);
+    }, 0)
+  );
+
+  new Chart(document.getElementById("goalsChart"), {
+    type: "bar",
+    data: {
+      labels: players,
+      datasets: [{
+        label: "Goals",
+        data: goalTotals,
+        backgroundColor: "rgba(0, 99, 255, 0.6)"
+      }]
     }
+  });
 
-    function filterMatches() {
-      const comp = getRadioValue("comp");
-      const ha = getRadioValue("ha");
-      const res = getRadioValue("result");
-
-      return matches.filter(m => {
-        const compOK = (comp === "All" || m.competition === comp);
-        const haOK = (ha === "All" || m.homeAway === ha);
-        const resOK = (res === "All" || m.result === res);
-        return compOK && haOK && resOK;
-      });
+  new Chart(document.getElementById("attendanceChart"), {
+    type: "bar",
+    data: {
+      labels: players,
+      datasets: [{
+        label: "Attendance (Y only)",
+        data: attTotals,
+        backgroundColor: "rgba(0, 200, 80, 0.6)"
+      }]
     }
+  });
+}
 
-    function filterGoals() {
-      const comp = getRadioValue("comp");
-      const ha = getRadioValue("ha");
-      const res = getRadioValue("result");
+async function init() {
+  const { matches, goals, attendance } = await loadData();
 
-      return goals.filter(g => {
-        const compOK = (comp === "All" || g.competition === comp);
-        const haOK = (ha === "All" || g.homeAway === ha);
-        const resOK = (res === "All" || g.result === res);
-        return compOK && haOK && resOK;
-      });
-    }
+  function update() {
+    const fg = filterGoals(goals);
+    const fa = filterAttendance(attendance);
+    renderCharts(fg, fa);
+  }
 
-    function filterAttendance() {
-      const comp = getRadioValue("comp");
-      const ha = getRadioValue("ha");
-      const res = getRadioValue("result");
+  document.querySelectorAll("input").forEach(el => {
+    el.addEventListener("change", update);
+  });
 
-      return attendance.filter(a => {
-        const compOK = (comp === "All" || a.competition === comp);
-        const haOK = (ha === "All" || a.homeAway === ha || a.type === "Training");
-        const resOK = (res === "All" || a.result === res || a.type === "Training");
-        return compOK && haOK && resOK;
-      });
-    }
+  update();
+}
 
-    function updateMatchCharts() {
-      const filtered = filterMatches();
+init();
+</script>
 
-      const labels = filtered.map(m => m.opposition);
-      const gf = filtered.map(m => m.gf);
-      const ga = filtered.map(m => m.ga);
-      const gd = filtered.map(m => m.gf - m.ga);
-
-      gfGaChart.data.labels = labels;
-      gfGaChart.data.datasets[0].data = gf;
-      gfGaChart.data.datasets[1].data = ga;
-      gfGaChart.update();
-
-      gdResultChart.data.labels = labels;
-      gdResultChart.data.datasets[0].data = gd;
-      gdResultChart.update();
-    }
-
-    function updatePlayerGoalsChart() {
-      const filtered = filterGoals();
-
-      const totals = {};
-      playerNames.forEach(name => totals[name] = 0);
-
-      filtered.forEach(match => {
-        playerNames.forEach(name => {
-          totals[name] += (match.goals[name] || 0);
-        });
-      });
-
-      const labels = playerNames;
-      const data = labels.map(name => totals[name]);
-
-      goalsPerPlayerChart.data.labels = labels;
-      goalsPerPlayerChart.data.datasets[0].data = data;
-      goalsPerPlayerChart.update();
-    }
-
-    function updateAttendanceCharts() {
-      const filtered = filterAttendance();
-
-      const playerCounts = {};
-      const playerAttended = {};
-      playerNames.forEach(name => {
-        playerCounts[name] = 0;
-        playerAttended[name] = 0;
-      });
-
-      const compCounts = {};
-      const compAttended = {};
-
-      filtered.forEach(session => {
-        const comp = session.competition;
-        if (!compCounts[comp]) {
-          compCounts[comp] = 0;
-          compAttended[comp] = 0;
-        }
-
-        playerNames.forEach(name => {
-          const val = session.attendance[name];
-          if (val !== undefined && val !== "-" && val !== "0") {
-            playerCounts[name] += 1;
-            if (val === "Y") {
-              playerAttended[name] += 1;
-              compAttended[comp] += 1;
-            }
-            compCounts[comp] += 1;
-          }
-        });
-      });
-
-      const playerLabels = playerNames;
-      const playerData = playerLabels.map(name => {
-        const total = playerCounts[name];
-        const att = playerAttended[name];
-        return total > 0 ? Math.round((att / total) * 100) : 0;
-      });
-
-      attendancePlayerChart.data.labels = playerLabels;
-      attendancePlayerChart.data.datasets[0].data = playerData;
-      attendancePlayerChart.update();
-
-      const compLabels = Object.keys(compCounts);
-      const compData = compLabels.map(comp => {
-        const total = compCounts[comp];
-        const att = compAttended[comp];
-        return total > 0 ? Math.round((att / total) * 100) : 0;
-      });
-
-      attendanceCompChart.data.labels = compLabels;
-      attendanceCompChart.data.datasets[0].data = compData;
-      attendanceCompChart.update();
-    }
-
-    function updateAllCharts() {
-      updateMatchCharts();
-      updatePlayerGoalsChart();
-      updateAttendanceCharts();
-    }
-
-    async function loadData() {
-      const base = "https://raw.githubusercontent.com/dansmith75/danson-u21-dashboard/main/data";
-
-      const [mRes, gRes, aRes] = await Promise.all([
-        fetch(`${base}/matches.json`),
-        fetch(`${base}/goals.json`),
-        fetch(`${base}/attendance.json`)
-      ]);
-
-      matches = await mRes.json();
-      goals = await gRes.json();
-      attendance = await aRes.json();
-
-      renderCharts();
-    }
-
-    function renderCharts() {
-      gfGaChart = new Chart(document.getElementById("gfGaChart"), {
-        type: "bar",
-        data: {
-          labels: [],
-          datasets: [
-            { label: "GF", data: [], backgroundColor: "#D4AF37" },
-            { label: "GA", data: [], backgroundColor: "#C8102E" }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { labels: { color: "#e5e7eb" } }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: true },
-              grid: { display: false }
-            },
-            y: {
-              ticks: { color: "#9ca3af", precision: 0 },
-              grid: { color: "rgba(55,65,81,0.6)" }
-            }
-          }
-        }
-      });
-
-      gdResultChart = new Chart(document.getElementById("gdResultChart"), {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "Goal Difference",
-              data: [],
-              borderColor: "#38bdf8",
-              backgroundColor: "rgba(56,189,248,0.25)",
-              fill: true,
-              tension: 0.25,
-              pointRadius: 3
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { labels: { color: "#e5e7eb" } }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: true },
-              grid: { display: false }
-            },
-            y: {
-              ticks: { color: "#9ca3af", precision: 0 },
-              grid: { color: "rgba(55,65,81,0.6)" }
-            }
-          }
-        }
-      });
-
-      goalsPerPlayerChart = new Chart(document.getElementById("goalsPerPlayerChart"), {
-        type: "bar",
-        data: {
-          labels: playerNames,
-          datasets: [
-            {
-              label: "Goals",
-              data: playerNames.map(() => 0),
-              backgroundColor: "#D4AF37",
-              borderRadius: 6
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: false },
-              grid: { display: false }
-            },
-            y: {
-              ticks: { color: "#9ca3af", precision: 0 },
-              grid: { color: "rgba(55,65,81,0.6)" }
-            }
-          }
-        }
-      });
-
-      attendancePlayerChart = new Chart(document.getElementById("attendancePlayerChart"), {
-        type: "bar",
-        data: {
-          labels: playerNames,
-          datasets: [
-            {
-              label: "Attendance %",
-              data: playerNames.map(() => 0),
-              backgroundColor: "#D4AF37",
-              borderRadius: 6
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: false },
-              grid: { display: false }
-            },
-            y: {
-              ticks: { color: "#9ca3af", precision: 0 },
-              grid: { color: "rgba(55,65,81,0.6)" }
-            }
-          }
-        }
-      });
-
-      attendanceCompChart = new Chart(document.getElementById("attendanceCompChart"), {
-        type: "bar",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "Attendance %",
-              data: [],
-              backgroundColor: "#D4AF37",
-              borderRadius: 6
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#9ca3af", maxRotation: 60, minRotation: 0, autoSkip: false },
-              grid: { display: false }
-            },
-            y: {
-              ticks: { color: "#9ca3af", precision: 0 },
-              grid: { color: "rgba(55,65,81,0.6)" }
-            }
-          }
-        }
-      });
-
-      updateAllCharts();
-    }
-
-    loadData().catch(err => {
-      console.error("Error loading data:", err);
-    });
-  </script>
 </body>
 </html>

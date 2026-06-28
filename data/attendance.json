@@ -54,6 +54,42 @@
       "Kieran R": "Y","Liam": "X","Louie": "U","Ronnie D": "Y","Ronnie T": "Y","Ryeley": "Y","Will": "Y"
     }
   },
+
+  /* TRAINING STARTS HERE */
+
+  {
+    "date": 45916,
+    "opposition": "Training",
+    "competition": "Training",
+    "type": "Training",
+    "attendance": {
+      "Alf M": "Y","Alfie F": "Y","Bailey": "Y","Brad": "N","Callum": "Y","Danny": "Y","George": "Y",
+      "Jamie": "N","Jay": "I","Joe": "Y","Josh": "Y","Jude": "Y","Kalan": "Y","Kieran D": "Y",
+      "Kieran R": "Y","Liam": "X","Louie": "I","Ronnie D": "Y","Ronnie T": "Y","Ryeley": "Y","Will": "N"
+    }
+  },
+  {
+    "date": 45923,
+    "opposition": "Training",
+    "competition": "Training",
+    "type": "Training",
+    "attendance": {
+      "Alf M": "N","Alfie F": "Y","Bailey": "Y","Brad": "Y","Callum": "Y","Danny": "N","George": "Y",
+      "Jamie": "Y","Jay": "N","Joe": "Y","Josh": "Y","Jude": "Y","Kalan": "Y","Kieran D": "Y",
+      "Kieran R": "N","Liam": "X","Louie": "I","Ronnie D": "Y","Ronnie T": "Y","Ryeley": "Y","Will": "Y"
+    }
+  },
+  {
+    "date": 45930,
+    "opposition": "Training",
+    "competition": "Training",
+    "type": "Training",
+    "attendance": {
+      "Alf M": "N","Alfie F": "Y","Bailey": "Y","Brad": "Y","Callum": "Y","Danny": "Y","George": "Y",
+      "Jamie": "N","Jay": "Y","Joe": "Y","Josh": "Y","Jude": "N","Kalan": "Y","Kieran D": "Y",
+      "Kieran R": "Y","Liam": "X","Louie": "Y","Ronnie D": "Y","Ronnie T": "Y","Ryeley": "Y","Will": "Y"
+    }
+  }
   {
     "date": 45963,
     "opposition": "Kent United FC",
@@ -218,38 +254,5 @@
       "Jamie": "X","Jay": "Y","Joe": "I","Josh": "Y","Jude": "N","Kalan": "Y","Kieran D": "Y",
       "Kieran R": "N","Liam": "Y","Louie": "Y","Ronnie D": "Y","Ronnie T": "N","Ryeley": "N","Will": "Y"
     }
-  },
-
-  /* TRAINING SESSIONS */
-
-  {
-    "date": 45916,
-    "opposition": "Training",
-    "competition": "Training",
-    "type": "Training",
-    "attendance": {
-      "Alf M": "Y","Alfie F": "Y","Bailey": "Y","Brad": "N","Callum": "Y","Danny": "Y","George": "Y",
-      "Jamie": "N","Jay": "I","Joe": "Y","Josh": "Y","Jude": "Y","Kalan": "Y","Kieran D": "Y",
-      "Kieran R": "Y","Liam": "X","Louie": "I","Ronnie D": "Y","Ronnie T": "Y","Ryeley": "Y","Will": "N"
-    }
-  },
-
-  {
-    "date": 45923,
-    "opposition": "Training",
-    "competition": "Training",
-    "type": "Training",
-    "attendance": {
-      "Alf M": "N","Alfie F": "Y","Bailey": "Y","Brad": "Y","Callum": "Y","Danny": "N","George": "Y",
-      "Jamie": "Y","Jay": "N","Joe": "Y","Josh": "Y","Jude": "Y","Kalan": "Y","Kieran D": "Y",
-      "Kieran R": "N","Liam": "X","Louie": "I","Ronnie D": "Y","Ronnie T": "Y","Ryeley": "Y","Will": "Y"
-    }
-  },
-
-  {
-    "date": 45930,
-    "opposition": "Training",
-    "competition": "Training",
-    "type": "Training",
-    "attendance": {
-      "Alf M": "N","Al
+  }
+]

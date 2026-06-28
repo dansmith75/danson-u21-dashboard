@@ -104,7 +104,8 @@
     .card:hover,
     .chart-container:hover,
     .stat:hover,
-    .event-card:hover {
+    .event-card:hover,
+    .gallery-item:hover {
       transform:translateY(-4px);
     }
 
@@ -139,7 +140,8 @@
     .card,
     .chart-container,
     .stat,
-    .event-card {
+    .event-card,
+    .gallery-item {
       animation:fadeUp .45s ease both;
     }
 
@@ -256,6 +258,95 @@
       font-size:13px;
     }
 
+    .gallery-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:18px;
+    }
+
+    .gallery-item {
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:.25s;
+    }
+
+    .gallery-item img {
+      width:100%;
+      height:220px;
+      object-fit:cover;
+      display:block;
+    }
+
+    .gallery-caption {
+      padding:14px 16px;
+    }
+
+    .gallery-caption h3 {
+      margin:0 0 4px;
+      font-size:16px;
+    }
+
+    .gallery-caption p {
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .lightbox {
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,.88);
+      z-index:999;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .lightbox.active {
+      display:flex;
+    }
+
+    .lightbox-content {
+      max-width:1000px;
+      width:100%;
+      text-align:center;
+      color:white;
+    }
+
+    .lightbox img {
+      max-width:100%;
+      max-height:75vh;
+      border-radius:18px;
+      box-shadow:0 30px 80px rgba(0,0,0,.45);
+    }
+
+    .lightbox h3 {
+      margin:16px 0 4px;
+    }
+
+    .lightbox p {
+      margin:0;
+      color:#cbd5e1;
+    }
+
+    .lightbox-close {
+      position:fixed;
+      top:18px;
+      right:22px;
+      border:none;
+      background:white;
+      color:#0f172a;
+      border-radius:999px;
+      padding:10px 14px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
     @keyframes fadeUp {
       from { opacity:0; transform:translateY(14px); }
       to { opacity:1; transform:translateY(0); }
@@ -287,6 +378,10 @@
       .event-card {
         grid-template-columns:1fr;
       }
+
+      .gallery-item img {
+        height:190px;
+      }
     }
   </style>
 </head>
@@ -309,6 +404,7 @@
       <button class="tab-btn" data-page="goals">Goals</button>
       <button class="tab-btn" data-page="attendance">Attendance</button>
       <button class="tab-btn" data-page="events">Events</button>
+      <button class="tab-btn" data-page="gallery">Gallery</button>
     </nav>
 
     <section id="overview" class="page active">
@@ -390,12 +486,66 @@
 
       <div class="timeline" id="eventsTimeline"></div>
     </section>
+
+    <section id="gallery" class="page">
+      <div class="card executive">
+        <h2>Gallery</h2>
+        <p>
+          Club photos, matchday moments and team memories. Upload pictures into the
+          <strong>gallery</strong> folder and list them in the galleryImages section of this file.
+        </p>
+      </div>
+
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </section>
   </main>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">Close</button>
+    <div class="lightbox-content">
+      <img id="lightboxImage" src="" alt="">
+      <h3 id="lightboxTitle"></h3>
+      <p id="lightboxCaption"></p>
+    </div>
+  </div>
 
   <script>
     const DATA = "data/";
     let store = {};
     let charts = {};
+
+    const galleryImages = [
+      {
+        src: "gallery/photo-1.jpg",
+        title: "Matchday Moment",
+        caption: "Add your own caption here"
+      },
+      {
+        src: "gallery/photo-2.jpg",
+        title: "Team Photo",
+        caption: "Add your own caption here"
+      },
+      {
+        src: "gallery/photo-3.jpg",
+        title: "Action Shot",
+        caption: "Add your own caption here"
+      },
+      {
+        src: "gallery/photo-4.jpg",
+        title: "Training Night",
+        caption: "Add your own caption here"
+      },
+      {
+        src: "gallery/photo-5.jpg",
+        title: "Squad Moment",
+        caption: "Add your own caption here"
+      },
+      {
+        src: "gallery/photo-6.jpg",
+        title: "Celebration",
+        caption: "Add your own caption here"
+      }
+    ];
 
     const valueLabelsPlugin = {
       id: "valueLabelsPlugin",
@@ -673,8 +823,8 @@
     function eventTone(eventText) {
       const text = eventText.toLowerCase();
 
-      if (text.includes("hat trick")) return "🎩 Hat-trick watch";
       if (text.includes("double hat trick")) return "🎩🎩 Double hat-trick alert";
+      if (text.includes("hat trick")) return "🎩 Hat-trick watch";
       if (text.includes("pen")) return "⚽ Penalty drama";
       if (text.includes("yellow")) return "🟨 Into the book";
       if (text.includes("red")) return "🟥 Early shower";
@@ -736,6 +886,31 @@
       `).join("");
     }
 
+    function renderGallery() {
+      const grid = document.getElementById("galleryGrid");
+
+      grid.innerHTML = galleryImages.map((image, index) => `
+        <article class="gallery-item" data-index="${index}">
+          <img src="${image.src}" alt="${image.title}" loading="lazy">
+          <div class="gallery-caption">
+            <h3>${image.title}</h3>
+            <p>${image.caption}</p>
+          </div>
+        </article>
+      `).join("");
+
+      document.querySelectorAll(".gallery-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const image = galleryImages[Number(item.dataset.index)];
+          document.getElementById("lightboxImage").src = image.src;
+          document.getElementById("lightboxImage").alt = image.title;
+          document.getElementById("lightboxTitle").innerText = image.title;
+          document.getElementById("lightboxCaption").innerText = image.caption;
+          document.getElementById("lightbox").classList.add("active");
+        });
+      });
+    }
+
     function renderCurrentPage() {
       const activePage = document.querySelector(".page.active").id;
 
@@ -743,6 +918,7 @@
       if (activePage === "goals") renderGoals();
       if (activePage === "attendance") renderAttendance();
       if (activePage === "events") renderEvents();
+      if (activePage === "gallery") renderGallery();
     }
 
     function setupTabs() {
@@ -779,10 +955,23 @@
       });
     }
 
+    function setupLightbox() {
+      document.getElementById("lightboxClose").addEventListener("click", () => {
+        document.getElementById("lightbox").classList.remove("active");
+      });
+
+      document.getElementById("lightbox").addEventListener("click", event => {
+        if (event.target.id === "lightbox") {
+          document.getElementById("lightbox").classList.remove("active");
+        }
+      });
+    }
+
     loadData()
       .then(() => {
         setupTabs();
         setupDarkMode();
+        setupLightbox();
 
         document.querySelectorAll("input[type='radio']").forEach(input => {
           input.addEventListener("change", () => {

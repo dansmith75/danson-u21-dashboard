@@ -104,8 +104,7 @@
     .card:hover,
     .chart-container:hover,
     .stat:hover,
-    .event-card:hover,
-    .gallery-item:hover {
+    .event-card:hover {
       transform:translateY(-4px);
     }
 
@@ -140,8 +139,7 @@
     .card,
     .chart-container,
     .stat,
-    .event-card,
-    .gallery-item {
+    .event-card {
       animation:fadeUp .45s ease both;
     }
 
@@ -258,93 +256,106 @@
       font-size:13px;
     }
 
-    .gallery-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:18px;
-    }
-
-    .gallery-item {
+    .gallery-stage {
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:20px;
-      overflow:hidden;
+      border-radius:24px;
       box-shadow:var(--shadow);
-      cursor:pointer;
-      transition:.25s;
+      padding:20px;
+      animation:fadeUp .45s ease both;
     }
 
-    .gallery-item img {
-      width:100%;
-      height:220px;
-      object-fit:cover;
-      display:block;
+    .gallery-main {
+      display:grid;
+      grid-template-columns:70px 1fr 70px;
+      align-items:center;
+      gap:16px;
+      min-height:520px;
     }
 
-    .gallery-caption {
-      padding:14px 16px;
-    }
-
-    .gallery-caption h3 {
-      margin:0 0 4px;
-      font-size:16px;
-    }
-
-    .gallery-caption p {
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .lightbox {
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(2,6,23,.88);
-      z-index:999;
+    .gallery-image-wrap {
+      display:flex;
       align-items:center;
       justify-content:center;
-      padding:24px;
+      background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(56,189,248,.08));
+      border:1px solid var(--line);
+      border-radius:22px;
+      height:520px;
+      overflow:hidden;
     }
 
-    .lightbox.active {
-      display:flex;
-    }
-
-    .lightbox-content {
-      max-width:1000px;
-      width:100%;
-      text-align:center;
-      color:white;
-    }
-
-    .lightbox img {
+    .gallery-image-wrap img {
       max-width:100%;
-      max-height:75vh;
-      border-radius:18px;
-      box-shadow:0 30px 80px rgba(0,0,0,.45);
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+      animation:fadeUp .25s ease;
     }
 
-    .lightbox h3 {
-      margin:16px 0 4px;
-    }
-
-    .lightbox p {
-      margin:0;
-      color:#cbd5e1;
-    }
-
-    .lightbox-close {
-      position:fixed;
-      top:18px;
-      right:22px;
+    .gallery-nav {
       border:none;
-      background:white;
-      color:#0f172a;
-      border-radius:999px;
-      padding:10px 14px;
-      font-weight:bold;
+      width:58px;
+      height:58px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#0f172a,#2563eb);
+      color:white;
+      font-size:34px;
       cursor:pointer;
+      box-shadow:0 12px 28px rgba(37,99,235,.24);
+      transition:.2s;
+    }
+
+    .gallery-nav:hover {
+      transform:scale(1.08);
+    }
+
+    .thumbnail-strip {
+      margin-top:18px;
+      display:flex;
+      gap:12px;
+      overflow-x:auto;
+      padding:8px 4px 4px;
+      scroll-behavior:smooth;
+    }
+
+    .thumbnail-strip::-webkit-scrollbar {
+      height:8px;
+    }
+
+    .thumbnail-strip::-webkit-scrollbar-thumb {
+      background:var(--primary);
+      border-radius:999px;
+    }
+
+    .thumbnail {
+      flex:0 0 auto;
+      width:92px;
+      height:70px;
+      border-radius:14px;
+      overflow:hidden;
+      border:3px solid transparent;
+      cursor:pointer;
+      opacity:.65;
+      transition:.2s;
+      background:var(--line);
+    }
+
+    .thumbnail:hover {
+      opacity:1;
+      transform:translateY(-2px);
+    }
+
+    .thumbnail.active {
+      opacity:1;
+      border-color:var(--accent);
+      box-shadow:0 8px 20px rgba(56,189,248,.25);
+    }
+
+    .thumbnail img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
     }
 
     @keyframes fadeUp {
@@ -379,8 +390,25 @@
         grid-template-columns:1fr;
       }
 
-      .gallery-item img {
-        height:190px;
+      .gallery-main {
+        grid-template-columns:44px 1fr 44px;
+        gap:8px;
+        min-height:360px;
+      }
+
+      .gallery-image-wrap {
+        height:360px;
+      }
+
+      .gallery-nav {
+        width:42px;
+        height:42px;
+        font-size:26px;
+      }
+
+      .thumbnail {
+        width:74px;
+        height:56px;
       }
     }
   </style>
@@ -490,61 +518,38 @@
     <section id="gallery" class="page">
       <div class="card executive">
         <h2>Gallery</h2>
-        <p>
-          Club photos, matchday moments and team memories. Upload pictures into the
-          <strong>gallery</strong> folder and list them in the galleryImages section of this file.
-        </p>
+        <p>Use the arrows to move through pictures, or pick one from the thumbnail wheel below.</p>
       </div>
 
-      <div class="gallery-grid" id="galleryGrid"></div>
+      <div class="gallery-stage">
+        <div class="gallery-main">
+          <button class="gallery-nav" id="galleryPrev">‹</button>
+
+          <div class="gallery-image-wrap">
+            <img id="galleryMainImage" src="" alt="Gallery image">
+          </div>
+
+          <button class="gallery-nav" id="galleryNext">›</button>
+        </div>
+
+        <div class="thumbnail-strip" id="thumbnailStrip"></div>
+      </div>
     </section>
   </main>
-
-  <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" id="lightboxClose">Close</button>
-    <div class="lightbox-content">
-      <img id="lightboxImage" src="" alt="">
-      <h3 id="lightboxTitle"></h3>
-      <p id="lightboxCaption"></p>
-    </div>
-  </div>
 
   <script>
     const DATA = "data/";
     let store = {};
     let charts = {};
+    let currentGalleryIndex = 0;
 
     const galleryImages = [
-      {
-        src: "gallery/photo-1.jpg",
-        title: "Matchday Moment",
-        caption: "Add your own caption here"
-      },
-      {
-        src: "gallery/photo-2.jpg",
-        title: "Team Photo",
-        caption: "Add your own caption here"
-      },
-      {
-        src: "gallery/photo-3.jpg",
-        title: "Action Shot",
-        caption: "Add your own caption here"
-      },
-      {
-        src: "gallery/photo-4.jpg",
-        title: "Training Night",
-        caption: "Add your own caption here"
-      },
-      {
-        src: "gallery/photo-5.jpg",
-        title: "Squad Moment",
-        caption: "Add your own caption here"
-      },
-      {
-        src: "gallery/photo-6.jpg",
-        title: "Celebration",
-        caption: "Add your own caption here"
-      }
+      "gallery/photo-1.jpg",
+      "gallery/photo-2.jpg",
+      "gallery/photo-3.jpg",
+      "gallery/photo-4.jpg",
+      "gallery/photo-5.jpg",
+      "gallery/photo-6.jpg"
     ];
 
     const valueLabelsPlugin = {
@@ -852,7 +857,6 @@
       });
 
       timeline.sort((a, b) => String(a.date).localeCompare(String(b.date)));
-
       return timeline;
     }
 
@@ -886,29 +890,53 @@
       `).join("");
     }
 
-    function renderGallery() {
-      const grid = document.getElementById("galleryGrid");
+    function showGalleryImage(index) {
+      if (galleryImages.length === 0) return;
 
-      grid.innerHTML = galleryImages.map((image, index) => `
-        <article class="gallery-item" data-index="${index}">
-          <img src="${image.src}" alt="${image.title}" loading="lazy">
-          <div class="gallery-caption">
-            <h3>${image.title}</h3>
-            <p>${image.caption}</p>
-          </div>
-        </article>
+      currentGalleryIndex = (index + galleryImages.length) % galleryImages.length;
+
+      const mainImage = document.getElementById("galleryMainImage");
+      mainImage.src = galleryImages[currentGalleryIndex];
+      mainImage.alt = `Gallery image ${currentGalleryIndex + 1}`;
+
+      document.querySelectorAll(".thumbnail").forEach((thumb, i) => {
+        thumb.classList.toggle("active", i === currentGalleryIndex);
+      });
+
+      const activeThumb = document.querySelector(`.thumbnail[data-index="${currentGalleryIndex}"]`);
+      if (activeThumb) {
+        activeThumb.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest"
+        });
+      }
+    }
+
+    function renderGallery() {
+      const strip = document.getElementById("thumbnailStrip");
+
+      strip.innerHTML = galleryImages.map((src, index) => `
+        <div class="thumbnail" data-index="${index}">
+          <img src="${src}" alt="Gallery thumbnail ${index + 1}" loading="lazy">
+        </div>
       `).join("");
 
-      document.querySelectorAll(".gallery-item").forEach(item => {
-        item.addEventListener("click", () => {
-          const image = galleryImages[Number(item.dataset.index)];
-          document.getElementById("lightboxImage").src = image.src;
-          document.getElementById("lightboxImage").alt = image.title;
-          document.getElementById("lightboxTitle").innerText = image.title;
-          document.getElementById("lightboxCaption").innerText = image.caption;
-          document.getElementById("lightbox").classList.add("active");
+      document.querySelectorAll(".thumbnail").forEach(thumb => {
+        thumb.addEventListener("click", () => {
+          showGalleryImage(Number(thumb.dataset.index));
         });
       });
+
+      document.getElementById("galleryPrev").onclick = () => {
+        showGalleryImage(currentGalleryIndex - 1);
+      };
+
+      document.getElementById("galleryNext").onclick = () => {
+        showGalleryImage(currentGalleryIndex + 1);
+      };
+
+      showGalleryImage(currentGalleryIndex);
     }
 
     function renderCurrentPage() {
@@ -955,23 +983,18 @@
       });
     }
 
-    function setupLightbox() {
-      document.getElementById("lightboxClose").addEventListener("click", () => {
-        document.getElementById("lightbox").classList.remove("active");
-      });
+    document.addEventListener("keydown", event => {
+      const galleryActive = document.getElementById("gallery").classList.contains("active");
+      if (!galleryActive) return;
 
-      document.getElementById("lightbox").addEventListener("click", event => {
-        if (event.target.id === "lightbox") {
-          document.getElementById("lightbox").classList.remove("active");
-        }
-      });
-    }
+      if (event.key === "ArrowLeft") showGalleryImage(currentGalleryIndex - 1);
+      if (event.key === "ArrowRight") showGalleryImage(currentGalleryIndex + 1);
+    });
 
     loadData()
       .then(() => {
         setupTabs();
         setupDarkMode();
-        setupLightbox();
 
         document.querySelectorAll("input[type='radio']").forEach(input => {
           input.addEventListener("change", () => {

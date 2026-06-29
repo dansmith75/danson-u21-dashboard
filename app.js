@@ -400,9 +400,14 @@ function attachOverviewDrillHandlers() {
         drillToResults("Competitive Losses", m => isCompetitive(m) && m.result === "Loss");
       }
 
-      if (drill === "competitive-goals-for") {
-        drillToGoals("Competitive Goals For", "All", "Both");
-      }
+      
+if (drill === "competitive-goals-for") {
+  drillToResults(
+    "Competitive Games — Danson Scored",
+    m => isCompetitive(m) && safeNumber(m.goalsFor) > 0
+  );
+}
+
 
       if (drill === "competitive-goals-against") {
         drillToResults(
@@ -427,9 +432,14 @@ function attachOverviewDrillHandlers() {
         drillToResults("Friendly Losses", m => m.competition === "Friendly" && m.result === "Loss");
       }
 
-      if (drill === "friendly-goals-for") {
-        drillToGoals("Friendly Goals For", "Friendly", "Both");
-      }
+      
+if (drill === "friendly-goals-for") {
+  drillToResults(
+    "Friendly Games — Danson Scored",
+    m => m.competition === "Friendly" && safeNumber(m.goalsFor) > 0
+  );
+}
+
 
       if (drill === "friendly-goals-against") {
         drillToResults(

@@ -88,6 +88,7 @@ async function loadGalleryImages() {
 async function loadData() {
   store.matches = await getJson("matches");
   store.goals = await getJson("goals");
+  store.assists = await getJson("assists");
   store.matchAttendance = await getJson("match-attendance");
   store.trainingAttendance = await getJson("training-attendance");
   store.players = await getJson("players");

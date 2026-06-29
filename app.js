@@ -85,16 +85,19 @@ async function loadGalleryImages() {
     .map(file => file.download_url);
 }
 
+
 async function loadData() {
   store.matches = await getJson("matches");
   store.goals = await getJson("goals");
   store.assists = await getJson("assists");
+  store.events = await getJson("events");
   store.matchAttendance = await getJson("match-attendance");
   store.trainingAttendance = await getJson("training-attendance");
   store.players = await getJson("players");
 
   await loadGalleryImages();
 }
+
 
 function isCompetitive(match) {
   return ["League", "Cup", "Shield"].includes(match.competition);

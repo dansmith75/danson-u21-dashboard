@@ -315,7 +315,34 @@
 
     .badge-win { background:#16a34a; }
     .badge-draw { background:#f59e0b; }
-    .badge-loss { background:#dc2626; }
+    .badge-loss { background:#dc2626; 
+	}
+	
+	.scorers-btn {
+  border: none;
+  background: linear-gradient(135deg,#0f172a,#2563eb);
+  color: white;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.scorers-row {
+  display: none;
+}
+
+.scorers-row.active {
+  display: table-row;
+}
+
+.scorers-box {
+  background: rgba(56,189,248,.10);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  color: var(--text);
+}
 
     .timeline {
       position:relative;
@@ -682,6 +709,7 @@
                 <th>GF</th>
                 <th>GA</th>
                 <th>Result</th>
+				<th>Scorers</th>
               </tr>
             </thead>
             <tbody id="resultsTable"></tbody>
@@ -1215,28 +1243,75 @@
       });
     }
 
-    function renderResults() {
-      const label = activeResultsFilter?.label || "";
-      const rows = activeResultsFilter
-        ? store.matches.filter(activeResultsFilter.filterFn)
-        : store.matches;
+    function getScorersForMatch(match) {
+  const goalRow = store.goals.find(g =>
+    g.date === match.date &&
+    g.opposition === match.opposition
+  );
 
-      setDrillLabel("resultsDrillLabel", label);
+  if (!goalRow || !goalRow.goals) {
+    return [];
+  }
 
-      document.getElementById("resultsTitle").textContent = label || "Match Results";
+  return Object.entries(goalRow.goals)
+    .filter(([player, goals]) => safeNumber(goals) > 0)
+    .map(([player, goals]) => ({
+      player,
+      goals: safeNumber(goals)
+    }));
+}
 
-      document.getElementById("resultsTable").innerHTML = rows.map(match => `
-        <tr>
-          <td>${match.date || ""}</td>
-          <td>${match.opposition || ""}</td>
-          <td>${match.homeAway || ""}</td>
-          <td>${match.competition || ""}</td>
-          <td>${safeNumber(match.goalsFor)}</td>
-          <td>${safeNumber(match.goalsAgainst)}</td>
-          <td><span class="result-badge ${resultClass(match.result)}">${match.result || ""}</span></td>
-        </tr>
-      `).join("");
-    }
+function toggleScorers(index) {
+  const row = document.getElementById(`scorers-row-${index}`);
+  if (row) {
+    row.classList.toggle("active");
+  }
+}
+
+function renderResults() {
+  const label = activeResultsFilter?.label || "";
+  const rows = activeResultsFilter
+    ? store.matches.filter(activeResultsFilter.filterFn)
+    : store.matches;
+
+  setDrillLabel("resultsDrillLabel", label);
+
+  document.getElementById("resultsTitle").textContent = label || "Match Results";
+
+  document.getElementById("resultsTable").innerHTML = rows.map((match, index) => {
+    const scorers = getScorersForMatch(match);
+
+    const scorersText = scorers.length
+      ? scorers.map(s => `${s.player} (${s.goals})`).join(", ")
+      : "No scorers recorded";
+
+    return `
+      <tr>
+        <td>${match.date || ""}</td>
+        <td>${match.opposition || ""}</td>
+        <td>${match.homeAway || ""}</td>
+        <td>${match.competition || ""}</td>
+        <td>${safeNumber(match.goalsFor)}</td>
+        <td>${safeNumber(match.goalsAgainst)}</td>
+        <td><span class="result-badge ${resultClass(match.result)}">${match.result || ""}</span></td>
+        <td>
+          <button class="scorers-btn" onclick="toggleScorers(${index})">
+            Scorers
+          </button>
+        </td>
+      </tr>
+
+      <tr class="scorers-row" id="scorers-row-${index}">
+        <td colspan="8">
+          <div class="scorers-box">
+            <strong>Scorers vs ${match.opposition}:</strong><br>
+            ${scorersText}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
 
     function goalFilters(row) {
       const comp = selected("goalComp");

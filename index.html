@@ -417,6 +417,29 @@
       margin-top:6px;
     }
 
+.player-detail-box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--accent);
+  border-radius: 18px;
+  padding: 18px;
+  margin: 18px 0 22px;
+  box-shadow: var(--shadow);
+}
+
+.player-detail-box h2 {
+  margin-top: 0;
+}
+
+.player-detail-box p,
+.player-detail-box li {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.stat.clickable {
+  cursor: pointer;
+}
     .injury-list,
     .player-event-list {
       margin:10px 0 0;
@@ -1504,13 +1527,15 @@ function renderResults() {
         </div>
 
         <div class="summary">
-          <div class="stat"><b>${goals}</b><span>Goals</span></div>
-          <div class="stat"><b>${matchAttendance}</b><span>Match Attendances</span></div>
-          <div class="stat training"><b>${trainingAttendance}</b><span>Training Attendances</span></div>
-          <div class="stat warning"><b>${cards.yellow}</b><span>Yellow Cards</span></div>
-          <div class="stat danger"><b>${cards.red}</b><span>Red Cards</span></div>
-          <div class="stat"><b>${injuryDates.length}</b><span>Weeks Injured</span></div>
-        </div>
+  <div class="stat clickable" onclick="showPlayerDetail('${player}', 'goals')"><b>${goals}</b><span>Goals</span></div>
+  <div class="stat clickable" onclick="showPlayerDetail('${player}', 'matchAttendance')"><b>${matchAttendance}</b><span>Match Attendances</span></div>
+  <div class="stat training clickable" onclick="showPlayerDetail('${player}', 'trainingAttendance')"><b>${trainingAttendance}</b><span>Training Attendances</span></div>
+  <div class="stat warning clickable" onclick="showPlayerDetail('${player}', 'yellowCards')"><b>${cards.yellow}</b><span>Yellow Cards</span></div>
+  <div class="stat danger clickable" onclick="showPlayerDetail('${player}', 'redCards')"><b>${cards.red}</b><span>Red Cards</span></div>
+  <div class="stat clickable" onclick="showPlayerDetail('${player}', 'injuries')"><b>${injuryDates.length}</b><span>Weeks Injured</span></div>
+</div>
+
+<div id="playerDetailBox"></div>
 
         <div class="card">
           <h2>Injury Weeks</h2>
@@ -1544,6 +1569,92 @@ function renderResults() {
 
       renderPlayerProfile(selectedPlayer);
     }
+
+function showPlayerDetail(player, type) {
+  const box = document.getElementById("playerDetailBox");
+  if (!box) return;
+
+  let title = "";
+  let content = "";
+
+  if (type === "goals") {
+    title = `${player} — Goals`;
+
+    const games = store.goals
+      .filter(row => safeNumber(row.goals?.[player]) > 0)
+      .map(row => `<li>${row.date} vs ${row.opposition}: ${safeNumber(row.goals?.[player])}</li>`);
+
+    content = games.length
+      ? `<ul>${games.join("")}</ul>`
+      : `<p>No goals recorded for ${player}.</p>`;
+  }
+
+  if (type === "matchAttendance") {
+    title = `${player} — Match Attendance`;
+
+    const games = store.matchAttendance
+      .filter(row => String(row.attendance?.[player] || "").toUpperCase() === "Y")
+      .map(row => `<li>${row.date} vs ${row.opposition}</li>`);
+
+    content = games.length
+      ? `<ul>${games.join("")}</ul>`
+      : `<p>No match attendances recorded for ${player}.</p>`;
+  }
+
+  if (type === "trainingAttendance") {
+    title = `${player} — Training Attendance`;
+
+    const sessions = store.trainingAttendance
+      .filter(row => String(row.attendance?.[player] || "").toUpperCase() === "Y")
+      .map(row => `<li>${row.date}</li>`);
+
+    content = sessions.length
+      ? `<ul>${sessions.join("")}</ul>`
+      : `<p>No training attendances recorded for ${player}.</p>`;
+  }
+
+  if (type === "yellowCards") {
+    title = `${player} — Yellow Cards`;
+
+    const yellows = getPlayerEvents(player)
+      .filter(e => e.event.toLowerCase().includes("yellow"))
+      .map(e => `<li>${e.date} vs ${e.opposition}: ${e.event}</li>`);
+
+    content = yellows.length
+      ? `<ul>${yellows.join("")}</ul>`
+      : `<p>No yellow cards recorded for ${player}.</p>`;
+  }
+
+  if (type === "redCards") {
+    title = `${player} — Red Cards`;
+
+    const reds = getPlayerEvents(player)
+      .filter(e => e.event.toLowerCase().includes("red"))
+      .map(e => `<li>${e.date} vs ${e.opposition}: ${e.event}</li>`);
+
+    content = reds.length
+      ? `<ul>${reds.join("")}</ul>`
+      : `<p>No red cards recorded for ${player}.</p>`;
+  }
+
+  if (type === "injuries") {
+    title = `${player} — Injury Weeks`;
+
+    const injuries = getInjuryDates(player)
+      .map(date => `<li>${date}</li>`);
+
+    content = injuries.length
+      ? `<ul>${injuries.join("")}</ul>`
+      : `<p>No injured weeks recorded for ${player}.</p>`;
+  }
+
+  box.innerHTML = `
+    <div class="player-detail-box">
+      <h2>${title}</h2>
+      ${content}
+    </div>
+  `;
+}
 
     function showGalleryImage(index) {
       const mainImage = document.getElementById("galleryMainImage");

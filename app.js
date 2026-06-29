@@ -88,7 +88,6 @@ async function loadGalleryImages() {
 async function loadData() {
   store.matches = await getJson("matches");
   store.goals = await getJson("goals");
-  store.events = await getJson("events");
   store.matchAttendance = await getJson("match-attendance");
   store.trainingAttendance = await getJson("training-attendance");
   store.players = await getJson("players");
@@ -233,6 +232,12 @@ function drawLine(name, canvasId, labels, data) {
 function goalTotals(rows) {
   return store.players.map(player =>
     rows.reduce((sum, row) => sum + safeNumber(row.goals?.[player]), 0)
+  );
+}
+
+function assistTotals(rows) {
+  return store.players.map(player =>
+    rows.reduce((sum, row) => sum + safeNumber(row.assists?.[player]), 0)
   );
 }
 
@@ -536,6 +541,7 @@ function renderGoals() {
   setDrillLabel("goalsDrillLabel", activeGoalsDrillLabel);
 
   const filteredGoals = store.goals.filter(goalFilters);
+  const filteredAssists = store.assists.filter(goalFilters);
 
   drawBar(
     "goalsByPlayer",
@@ -545,11 +551,12 @@ function renderGoals() {
     "rgba(37,99,235,.78)"
   );
 
-  drawLine(
-    "goalsTimeline",
-    "goalsTimelineChart",
-    filteredGoals.map(g => `${formatDateUK(g.date)} - ${g.opposition}`),
-    filteredGoals.map(g => safeNumber(g.total))
+  drawBar(
+    "assistsByPlayer",
+    "assistsByPlayerChart",
+    store.players,
+    assistTotals(filteredAssists),
+    "rgba(56,189,248,.82)"
   );
 }
 
@@ -633,6 +640,10 @@ function getPlayerGoals(player) {
   return store.goals.reduce((sum, row) => sum + safeNumber(row.goals?.[player]), 0);
 }
 
+function getPlayerAssists(player) {
+  return store.assists.reduce((sum, row) => sum + safeNumber(row.assists?.[player]), 0);
+}
+
 function countAttendanceForPlayer(rows, player) {
   return rows.reduce((sum, row) => {
     const value = String(row.attendance?.[player] || "").toUpperCase();
@@ -700,6 +711,7 @@ function renderPlayerProfile(player) {
   });
 
   const goals = getPlayerGoals(player);
+  const assists = getPlayerAssists(player);
   const matchAttendance = countAttendanceForPlayer(store.matchAttendance, player);
   const trainingAttendance = countAttendanceForPlayer(store.trainingAttendance, player);
   const cards = getCardCounts(player);
@@ -716,6 +728,7 @@ function renderPlayerProfile(player) {
 
     <div class="summary">
       <div class="stat clickable" onclick="showPlayerDetail('${player}', 'goals')"><b>${goals}</b><span>Goals</span></div>
+      <div class="stat clickable" onclick="showPlayerDetail('${player}', 'assists')"><b>${assists}</b><span>Assists</span></div>
       <div class="stat clickable" onclick="showPlayerDetail('${player}', 'matchAttendance')"><b>${matchAttendance}</b><span>Match Attendances</span></div>
       <div class="stat training clickable" onclick="showPlayerDetail('${player}', 'trainingAttendance')"><b>${trainingAttendance}</b><span>Training Attendances</span></div>
       <div class="stat warning clickable" onclick="showPlayerDetail('${player}', 'yellowCards')"><b>${cards.yellow}</b><span>Yellow Cards</span></div>
@@ -757,7 +770,18 @@ function showPlayerDetail(player, type) {
 
     content = games.length ? `<ul>${games.join("")}</ul>` : `<p>No goals recorded for ${player}.</p>`;
   }
+  
+if (type === "assists") {
+  title = `${player} — Assists`;
 
+  const assists = store.assists
+    .filter(row => safeNumber(row.assists?.[player]) > 0)
+    .map(row => `<li>${formatDateUK(row.date)} vs ${row.opposition}: ${safeNumber(row.assists?.[player])}</li>`);
+
+  content = assists.length
+    ? `<ul>${assists.join("")}</ul>`
+    : `<p>No assists recorded for ${player}.</p>`;
+}
   if (type === "matchAttendance") {
     title = `${player} — Match Attendance`;
 

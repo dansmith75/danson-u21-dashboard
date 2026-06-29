@@ -594,7 +594,7 @@ function eventTone(eventText) {
 
   if (text.includes("double hat trick")) return "🎩🎩 Double hat-trick alert";
   if (text.includes("hat trick")) return "🎩 Hat-trick watch";
-  if (text.includes("pen")) return "⚽ Penalty drama";
+  if (text.includes("pen")) return "⚽ Penalty";
   if (text.includes("yellow")) return "🟨 Into the book";
   if (text.includes("red")) return "🟥 Early shower";
   if (text.includes("injur") || text.includes("split") || text.includes("shoulder")) return "🩹 Treatment room note";

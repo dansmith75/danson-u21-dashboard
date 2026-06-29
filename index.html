@@ -1537,16 +1537,7 @@ function renderResults() {
 
 <div id="playerDetailBox"></div>
 
-        <div class="card">
-          <h2>Injury Weeks</h2>
-          ${
-            injuryDates.length
-              ? `<ul class="injury-list">${injuryDates.map(date => `<li>${date}</li>`).join("")}</ul>`
-              : `<p class="executive">No injured weeks recorded for ${player}.</p>`
-          }
-        </div>
-
-        <div class="card">
+                <div class="card">
           <h2>Events</h2>
           ${
             playerEvents.length

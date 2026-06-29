@@ -129,7 +129,9 @@
       animation:fadeUp .35s ease;
     }
 
-    .overview-block { margin-bottom:26px; }
+    .overview-block {
+      margin-bottom:26px;
+    }
 
     .overview-block h2 {
       margin:0 0 12px;
@@ -171,6 +173,19 @@
       transition:.25s;
     }
 
+    .stat.drill {
+      cursor:pointer;
+      position:relative;
+    }
+
+    .stat.drill::after {
+      content:"Click to drill down";
+      display:block;
+      font-size:11px;
+      margin-top:7px;
+      color:rgba(255,255,255,.65);
+    }
+
     .stat.training { background:linear-gradient(135deg,#064e3b,#10b981); }
     .stat.friendly { background:linear-gradient(135deg,#581c87,#a855f7); }
     .stat.warning { background:linear-gradient(135deg,#92400e,#f59e0b); }
@@ -187,7 +202,24 @@
       font-size:14px;
     }
 
-    .filters h3 { margin:16px 0 10px; }
+    .drill-label {
+      display:none;
+      background:rgba(56,189,248,.12);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:12px 16px;
+      border-radius:16px;
+      margin-bottom:18px;
+      font-weight:bold;
+    }
+
+    .drill-label.active {
+      display:block;
+    }
+
+    .filters h3 {
+      margin:16px 0 10px;
+    }
 
     .filters label {
       display:inline-block;
@@ -204,7 +236,9 @@
       accent-color:var(--primary);
     }
 
-    .chart-title { margin-top:0; }
+    .chart-title {
+      margin-top:0;
+    }
 
     .chart-scroll {
       overflow-x:auto;
@@ -248,7 +282,9 @@
     .form-draw { background:#f59e0b; }
     .form-loss { background:#dc2626; }
 
-    .results-table-wrap { overflow-x:auto; }
+    .results-table-wrap {
+      overflow-x:auto;
+    }
 
     table {
       width:100%;
@@ -298,7 +334,9 @@
       color:var(--primary);
     }
 
-    .event-main h3 { margin:0 0 6px; }
+    .event-main h3 {
+      margin:0 0 6px;
+    }
 
     .event-main p {
       margin:4px 0;
@@ -410,7 +448,9 @@
       transition:.2s;
     }
 
-    .gallery-nav:hover { transform:scale(1.08); }
+    .gallery-nav:hover {
+      transform:scale(1.08);
+    }
 
     .thumbnail-strip {
       margin-top:18px;
@@ -463,7 +503,9 @@
       padding:24px;
     }
 
-    .fullscreen.active { display:flex; }
+    .fullscreen.active {
+      display:flex;
+    }
 
     .fullscreen img {
       max-width:96vw;
@@ -518,7 +560,9 @@
         height:64px;
       }
 
-      main { padding:14px; }
+      main {
+        padding:14px;
+      }
 
       .tabs {
         overflow-x:auto;
@@ -526,14 +570,18 @@
         padding-bottom:8px;
       }
 
-      .tab-btn { white-space:nowrap; }
+      .tab-btn {
+        white-space:nowrap;
+      }
 
       .chart-box {
         height:520px;
         min-width:950px;
       }
 
-      .event-card { grid-template-columns:1fr; }
+      .event-card {
+        grid-template-columns:1fr;
+      }
 
       .gallery-main {
         grid-template-columns:44px 1fr 44px;
@@ -541,7 +589,9 @@
         min-height:360px;
       }
 
-      .gallery-image-wrap { height:360px; }
+      .gallery-image-wrap {
+        height:360px;
+      }
 
       .gallery-nav {
         width:42px;
@@ -617,8 +667,10 @@
     </section>
 
     <section id="results" class="page">
+      <div class="drill-label" id="resultsDrillLabel"></div>
+
       <div class="card">
-        <h2>Match Results</h2>
+        <h2 id="resultsTitle">Match Results</h2>
         <div class="results-table-wrap">
           <table>
             <thead>
@@ -639,6 +691,8 @@
     </section>
 
     <section id="goals" class="page">
+      <div class="drill-label" id="goalsDrillLabel"></div>
+
       <div class="card filters">
         <h3>Competition</h3>
         <label><input type="radio" name="goalComp" value="All" checked> All</label>
@@ -673,6 +727,8 @@
     </section>
 
     <section id="attendance" class="page">
+      <div class="drill-label" id="attendanceDrillLabel"></div>
+
       <div class="chart-container">
         <h2 class="chart-title">Match Attendance</h2>
         <div class="chart-scroll">
@@ -728,8 +784,7 @@
   </div>
 
   <div class="visit-counter" id="visitCounter">Visits: 0</div>
-
-  <script>
+``<script>
     const DATA = "data/";
     const GITHUB_GALLERY_API = "https://api.github.com/repos/dansmith75/danson-u21-dashboard/contents/gallery";
 
@@ -738,6 +793,10 @@
     let galleryImages = [];
     let currentGalleryIndex = 0;
     let selectedPlayer = null;
+
+    let activeResultsFilter = null;
+    let activeGoalsDrillLabel = "";
+    let activeAttendanceDrillLabel = "";
 
     const valueLabelsPlugin = {
       id: "valueLabelsPlugin",
@@ -974,6 +1033,61 @@
       return "";
     }
 
+    function showPage(pageId) {
+      document.querySelectorAll(".tab-btn").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === pageId);
+      });
+
+      document.querySelectorAll(".page").forEach(page => {
+        page.classList.toggle("active", page.id === pageId);
+      });
+
+      setTimeout(renderCurrentPage, 80);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setDrillLabel(elementId, text) {
+      const label = document.getElementById(elementId);
+
+      if (!label) return;
+
+      if (text) {
+        label.textContent = `Showing: ${text}`;
+        label.classList.add("active");
+      } else {
+        label.textContent = "";
+        label.classList.remove("active");
+      }
+    }
+
+    function drillToResults(label, filterFn) {
+      activeResultsFilter = { label, filterFn };
+      activeGoalsDrillLabel = "";
+      activeAttendanceDrillLabel = "";
+      showPage("results");
+    }
+
+    function drillToGoals(label, competition = "All", homeAway = "Both") {
+      activeResultsFilter = null;
+      activeGoalsDrillLabel = label;
+      activeAttendanceDrillLabel = "";
+
+      const compInput = document.querySelector(`input[name="goalComp"][value="${competition}"]`);
+      const haInput = document.querySelector(`input[name="goalHA"][value="${homeAway}"]`);
+
+      if (compInput) compInput.checked = true;
+      if (haInput) haInput.checked = true;
+
+      showPage("goals");
+    }
+
+    function drillToAttendance(label) {
+      activeResultsFilter = null;
+      activeGoalsDrillLabel = "";
+      activeAttendanceDrillLabel = label;
+      showPage("attendance");
+    }
+
     function renderFormGuide() {
       const lastFive = store.matches
         .filter(isCompetitive)
@@ -1006,36 +1120,112 @@
         : 0;
 
       document.getElementById("competitiveSummary").innerHTML = `
-        <div class="stat"><b>${competitive.games}</b><span>Competitive Games</span></div>
-        <div class="stat"><b>${competitive.wins}</b><span>Wins</span></div>
-        <div class="stat"><b>${competitive.draws}</b><span>Draws</span></div>
-        <div class="stat"><b>${competitive.losses}</b><span>Losses</span></div>
-        <div class="stat"><b>${competitive.goalsFor}</b><span>Goals For</span></div>
-        <div class="stat"><b>${competitive.goalsAgainst}</b><span>Goals Against</span></div>
+        <div class="stat drill" data-drill="competitive-all"><b>${competitive.games}</b><span>Competitive Games</span></div>
+        <div class="stat drill" data-drill="competitive-win"><b>${competitive.wins}</b><span>Wins</span></div>
+        <div class="stat drill" data-drill="competitive-draw"><b>${competitive.draws}</b><span>Draws</span></div>
+        <div class="stat drill" data-drill="competitive-loss"><b>${competitive.losses}</b><span>Losses</span></div>
+        <div class="stat drill" data-drill="competitive-goals-for"><b>${competitive.goalsFor}</b><span>Goals For</span></div>
+        <div class="stat drill" data-drill="competitive-goals-against"><b>${competitive.goalsAgainst}</b><span>Goals Against</span></div>
       `;
 
       document.getElementById("friendlySummary").innerHTML = `
-        <div class="stat friendly"><b>${friendly.games}</b><span>Friendly Games</span></div>
-        <div class="stat friendly"><b>${friendly.wins}</b><span>Wins</span></div>
-        <div class="stat friendly"><b>${friendly.draws}</b><span>Draws</span></div>
-        <div class="stat friendly"><b>${friendly.losses}</b><span>Losses</span></div>
-        <div class="stat friendly"><b>${friendly.goalsFor}</b><span>Goals For</span></div>
-        <div class="stat friendly"><b>${friendly.goalsAgainst}</b><span>Goals Against</span></div>
+        <div class="stat friendly drill" data-drill="friendly-all"><b>${friendly.games}</b><span>Friendly Games</span></div>
+        <div class="stat friendly drill" data-drill="friendly-win"><b>${friendly.wins}</b><span>Wins</span></div>
+        <div class="stat friendly drill" data-drill="friendly-draw"><b>${friendly.draws}</b><span>Draws</span></div>
+        <div class="stat friendly drill" data-drill="friendly-loss"><b>${friendly.losses}</b><span>Losses</span></div>
+        <div class="stat friendly drill" data-drill="friendly-goals-for"><b>${friendly.goalsFor}</b><span>Goals For</span></div>
+        <div class="stat friendly drill" data-drill="friendly-goals-against"><b>${friendly.goalsAgainst}</b><span>Goals Against</span></div>
       `;
 
       document.getElementById("trainingSummary").innerHTML = `
-        <div class="stat training"><b>${trainingSessions}</b><span>Training Sessions</span></div>
-        <div class="stat training"><b>${trainingAttendances}</b><span>Total Attendances</span></div>
-        <div class="stat training"><b>${averageTrainingFigure.toFixed(1)}</b><span>Average Attendance</span></div>
-        <div class="stat training"><b>${averageTrainingPercentage.toFixed(1)}%</b><span>Average Attendance %</span></div>
+        <div class="stat training drill" data-drill="training-sessions"><b>${trainingSessions}</b><span>Training Sessions</span></div>
+        <div class="stat training drill" data-drill="training-attendances"><b>${trainingAttendances}</b><span>Total Attendances</span></div>
+        <div class="stat training drill" data-drill="training-average"><b>${averageTrainingFigure.toFixed(1)}</b><span>Average Attendance</span></div>
+        <div class="stat training drill" data-drill="training-percent"><b>${averageTrainingPercentage.toFixed(1)}%</b><span>Average Attendance %</span></div>
       `;
 
       document.getElementById("executiveSummary").innerText =
         `Danson U21 have recorded ${competitive.games} competitive fixtures, with ${competitive.wins} wins, ${competitive.draws} draws and ${competitive.losses} losses. In competitive games, the team has scored ${competitive.goalsFor} and conceded ${competitive.goalsAgainst}. Friendlies are tracked separately, with ${friendly.games} friendly fixtures. Training is separated from matches, with ${trainingSessions} sessions, ${trainingAttendances} total attendances, an average of ${averageTrainingFigure.toFixed(1)} players per session and an average attendance rate of ${averageTrainingPercentage.toFixed(1)}%.`;
+
+      attachOverviewDrillHandlers();
+    }
+
+    function attachOverviewDrillHandlers() {
+      document.querySelectorAll("[data-drill]").forEach(card => {
+        card.addEventListener("click", () => {
+          const drill = card.dataset.drill;
+
+          if (drill === "competitive-all") {
+            drillToResults("Competitive Games", m => isCompetitive(m));
+          }
+
+          if (drill === "competitive-win") {
+            drillToResults("Competitive Wins", m => isCompetitive(m) && m.result === "Win");
+          }
+
+          if (drill === "competitive-draw") {
+            drillToResults("Competitive Draws", m => isCompetitive(m) && m.result === "Draw");
+          }
+
+          if (drill === "competitive-loss") {
+            drillToResults("Competitive Losses", m => isCompetitive(m) && m.result === "Loss");
+          }
+
+          if (drill === "competitive-goals-for") {
+            drillToGoals("Competitive Goals For", "All", "Both");
+          }
+
+          if (drill === "competitive-goals-against") {
+            drillToResults("Competitive Games — Goals Against", m => isCompetitive(m));
+          }
+
+          if (drill === "friendly-all") {
+            drillToResults("Friendly Games", m => m.competition === "Friendly");
+          }
+
+          if (drill === "friendly-win") {
+            drillToResults("Friendly Wins", m => m.competition === "Friendly" && m.result === "Win");
+          }
+
+          if (drill === "friendly-draw") {
+            drillToResults("Friendly Draws", m => m.competition === "Friendly" && m.result === "Draw");
+          }
+
+          if (drill === "friendly-loss") {
+            drillToResults("Friendly Losses", m => m.competition === "Friendly" && m.result === "Loss");
+          }
+
+          if (drill === "friendly-goals-for") {
+            drillToGoals("Friendly Goals For", "Friendly", "Both");
+          }
+
+          if (drill === "friendly-goals-against") {
+            drillToResults("Friendly Games — Goals Against", m => m.competition === "Friendly");
+          }
+
+          if (
+            drill === "training-sessions" ||
+            drill === "training-attendances" ||
+            drill === "training-average" ||
+            drill === "training-percent"
+          ) {
+            drillToAttendance("Training Attendance");
+          }
+        });
+      });
     }
 
     function renderResults() {
-      document.getElementById("resultsTable").innerHTML = store.matches.map(match => `
+      const label = activeResultsFilter?.label || "";
+      const rows = activeResultsFilter
+        ? store.matches.filter(activeResultsFilter.filterFn)
+        : store.matches;
+
+      setDrillLabel("resultsDrillLabel", label);
+
+      document.getElementById("resultsTitle").textContent = label || "Match Results";
+
+      document.getElementById("resultsTable").innerHTML = rows.map(match => `
         <tr>
           <td>${match.date || ""}</td>
           <td>${match.opposition || ""}</td>
@@ -1057,6 +1247,8 @@
     }
 
     function renderGoals() {
+      setDrillLabel("goalsDrillLabel", activeGoalsDrillLabel);
+
       const filteredGoals = store.goals.filter(goalFilters);
 
       drawBar(
@@ -1076,6 +1268,8 @@
     }
 
     function renderAttendance() {
+      setDrillLabel("attendanceDrillLabel", activeAttendanceDrillLabel);
+
       drawBar(
         "matchAttendance",
         "matchAttendanceChart",
@@ -1368,13 +1562,11 @@
     function setupTabs() {
       document.querySelectorAll(".tab-btn").forEach(button => {
         button.addEventListener("click", () => {
-          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-          document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+          activeResultsFilter = null;
+          activeGoalsDrillLabel = "";
+          activeAttendanceDrillLabel = "";
 
-          button.classList.add("active");
-          document.getElementById(button.dataset.page).classList.add("active");
-
-          setTimeout(renderCurrentPage, 80);
+          showPage(button.dataset.page);
         });
       });
     }
@@ -1421,7 +1613,10 @@
         setupVisitCounter();
 
         document.querySelectorAll("input[type='radio']").forEach(input => {
-          input.addEventListener("change", () => setTimeout(renderCurrentPage, 80));
+          input.addEventListener("change", () => {
+            activeGoalsDrillLabel = "";
+            setTimeout(renderCurrentPage, 80);
+          });
         });
 
         renderOverview();

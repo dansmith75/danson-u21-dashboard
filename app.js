@@ -332,10 +332,19 @@ function renderFormGuide() {
     .filter(m => ["Win", "Draw", "Loss"].includes(m.result))
     .slice(-5);
 
-  document.getElementById("formGuide").innerHTML = lastFive.map(match => {
+  document.getElementById("formGuide").innerHTML = lastFive.map((match, index) => {
     const letter = match.result === "Win" ? "W" : match.result === "Draw" ? "D" : "L";
     const cls = match.result === "Win" ? "form-win" : match.result === "Draw" ? "form-draw" : "form-loss";
-    return `<div class="form-pill ${cls}" title="${formatDateUK(match.date)} v ${match.opposition}">${letter}</div>`;
+
+    return `
+      <div 
+        class="form-pill ${cls}" 
+        title="${formatDateUK(match.date)} v ${match.opposition}"
+        onclick="drillToResults('${formatDateUK(match.date)} vs ${match.opposition}', m => m.date === '${match.date}' && m.opposition === '${match.opposition}')"
+      >
+        ${letter}
+      </div>
+    `;
   }).join("");
 }
 

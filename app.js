@@ -494,6 +494,22 @@ function getScorersForMatch(match) {
     }));
 }
 
+function getAssistsForMatch(match) {
+  const assistRow = store.assists.find(a =>
+    a.date === match.date &&
+    a.opposition === match.opposition
+  );
+
+  if (!assistRow || !assistRow.assists) return [];
+
+  return Object.entries(assistRow.assists)
+    .filter(([player, assists]) => safeNumber(assists) > 0)
+    .map(([player, assists]) => ({
+      player,
+      assists: safeNumber(assists)
+    }));
+}
+
 function toggleScorers(index) {
   const row = document.getElementById(`scorers-row-${index}`);
   if (row) row.classList.toggle("active");
@@ -511,10 +527,15 @@ function renderResults() {
 
   document.getElementById("resultsTable").innerHTML = rows.map((match, index) => {
     const scorers = getScorersForMatch(match);
+const assists = getAssistsForMatch(match);
 
-    const scorersText = scorers.length
-      ? scorers.map(s => `${s.player} (${s.goals})`).join(", ")
-      : "No scorers recorded";
+const scorersText = scorers.length
+  ? scorers.map(s => `${s.player} (${s.goals})`).join(", ")
+  : "No scorers recorded";
+
+const assistsText = assists.length
+  ? assists.map(a => `${a.player} (${a.assists})`).join(", ")
+  : "No assists recorded";
 
     return `
       <tr>
@@ -533,8 +554,11 @@ function renderResults() {
       <tr class="scorers-row" id="scorers-row-${index}">
         <td colspan="8">
           <div class="scorers-box">
-            <strong>Scorers vs ${match.opposition}:</strong><br>
-            ${scorersText}
+           <strong>Scorers vs ${match.opposition}:</strong><br>
+${scorersText}
+<br><br>
+<strong>Assists:</strong><br>
+${assistsText}
           </div>
         </td>
       </tr>

@@ -7,25 +7,25 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-   :root {
-  --bg:#020617; 
-  --card:#0f172a; 
-  --text:#e5e7eb;
-  --muted:#94a3b8; 
-  --line:#1e293b;
-  --primary:#2563eb; 
-  --accent:#38bdf8;
-  --shadow:0 18px 45px rgba(0,0,0,.35);
-}
+    :root {
+      --bg:#020617;
+      --card:#0f172a;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --line:#1e293b;
+      --primary:#2563eb;
+      --accent:#38bdf8;
+      --shadow:0 18px 45px rgba(0,0,0,.35);
+    }
 
-body.light {
-  --bg:#f8fafc; 
-  --card:#fff; 
-  --text:#0f172a; 
-  --muted:#64748b;
-  --line:#e2e8f0; 
-  --shadow:0 12px 30px rgba(15,23,42,.08);
-}
+    body.light {
+      --bg:#f8fafc;
+      --card:#fff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --shadow:0 12px 30px rgba(15,23,42,.08);
+    }
 
     * { box-sizing:border-box; }
 
@@ -208,13 +208,14 @@ body.light {
 
     .chart-scroll {
       overflow-x:auto;
-      padding-bottom:8px;
+      overflow-y:hidden;
+      padding-bottom:18px;
     }
 
     .chart-box {
       position:relative;
-      height:460px;
-      min-width:760px;
+      height:520px;
+      min-width:900px;
       width:100%;
     }
 
@@ -247,9 +248,7 @@ body.light {
     .form-draw { background:#f59e0b; }
     .form-loss { background:#dc2626; }
 
-    .results-table-wrap {
-      overflow-x:auto;
-    }
+    .results-table-wrap { overflow-x:auto; }
 
     table {
       width:100%;
@@ -464,9 +463,7 @@ body.light {
       padding:24px;
     }
 
-    .fullscreen.active {
-      display:flex;
-    }
+    .fullscreen.active { display:flex; }
 
     .fullscreen img {
       max-width:96vw;
@@ -521,9 +518,7 @@ body.light {
         height:64px;
       }
 
-      main {
-        padding:14px;
-      }
+      main { padding:14px; }
 
       .tabs {
         overflow-x:auto;
@@ -531,18 +526,14 @@ body.light {
         padding-bottom:8px;
       }
 
-      .tab-btn {
-        white-space:nowrap;
-      }
+      .tab-btn { white-space:nowrap; }
 
       .chart-box {
-        height:390px;
-        min-width:720px;
+        height:520px;
+        min-width:950px;
       }
 
-      .event-card {
-        grid-template-columns:1fr;
-      }
+      .event-card { grid-template-columns:1fr; }
 
       .gallery-main {
         grid-template-columns:44px 1fr 44px;
@@ -550,9 +541,7 @@ body.light {
         min-height:360px;
       }
 
-      .gallery-image-wrap {
-        height:360px;
-      }
+      .gallery-image-wrap { height:360px; }
 
       .gallery-nav {
         width:42px;
@@ -583,7 +572,7 @@ body.light {
         <p>2025/26 Season Statistics</p>
       </div>
     </div>
-    <button class="theme-toggle" id="themeToggle">Dark Mode</button>
+    <button class="theme-toggle" id="themeToggle">Light Mode</button>
   </header>
 
   <main>
@@ -754,13 +743,15 @@ body.light {
       id: "valueLabelsPlugin",
       afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
-        const colour = document.body.classList.contains("dark") ? "#e5e7eb" : "#0f172a";
+        const colour = chartTextColour();
 
         chart.data.datasets.forEach((dataset, datasetIndex) => {
           const meta = chart.getDatasetMeta(datasetIndex);
+
           meta.data.forEach((bar, index) => {
             const value = dataset.data[index];
             if (!value || value === 0) return;
+
             ctx.save();
             ctx.fillStyle = colour;
             ctx.font = "bold 12px Arial";
@@ -792,6 +783,7 @@ body.light {
 
     async function loadGalleryImages() {
       const response = await fetch(GITHUB_GALLERY_API);
+
       if (!response.ok) {
         galleryImages = [];
         return;
@@ -820,36 +812,75 @@ body.light {
     }
 
     function chartTextColour() {
-      return document.body.classList.contains("dark") ? "#e5e7eb" : "#0f172a";
+      return document.body.classList.contains("light") ? "#0f172a" : "#e5e7eb";
+    }
+
+    function chartGridColour() {
+      return document.body.classList.contains("light")
+        ? "rgba(15,23,42,.08)"
+        : "rgba(255,255,255,.08)";
     }
 
     function destroyChart(name) {
       if (charts[name]) charts[name].destroy();
     }
 
+    function chartXTickOptions(autoSkip = false) {
+      return {
+        color: chartTextColour(),
+        autoSkip,
+        maxRotation: 45,
+        minRotation: 45,
+        padding: 12
+      };
+    }
+
     function drawBar(name, canvasId, labels, data, colour) {
       destroyChart(name);
+
       const maxValue = Math.max(...data, 0);
 
       charts[name] = new Chart(document.getElementById(canvasId), {
         type:"bar",
-        data:{ labels, datasets:[{ data, backgroundColor:colour, borderRadius:8 }] },
+        data:{
+          labels,
+          datasets:[{
+            data,
+            backgroundColor:colour,
+            borderRadius:8
+          }]
+        },
         options:{
           responsive:true,
           maintainAspectRatio:false,
-          animation:{ duration:900, easing:"easeOutQuart" },
-          layout:{ padding:{ top:28 } },
-          plugins:{ legend:{ display:false } },
+          animation:{
+            duration:900,
+            easing:"easeOutQuart"
+          },
+          layout:{
+            padding:{
+              top:28,
+              bottom:60
+            }
+          },
+          plugins:{
+            legend:{ display:false }
+          },
           scales:{
             x:{
-              ticks:{ color:chartTextColour(), autoSkip:false, maxRotation:65, minRotation:35 },
+              ticks: chartXTickOptions(false),
               grid:{ display:false }
             },
             y:{
               beginAtZero:true,
               suggestedMax:maxValue + 2,
-              ticks:{ color:chartTextColour(), precision:0 },
-              grid:{ color:document.body.classList.contains("dark") ? "rgba(255,255,255,.08)" : "rgba(15,23,42,.08)" }
+              ticks:{
+                color:chartTextColour(),
+                precision:0
+              },
+              grid:{
+                color:chartGridColour()
+              }
             }
           }
         }
@@ -877,11 +908,34 @@ body.light {
         options:{
           responsive:true,
           maintainAspectRatio:false,
-          animation:{ duration:900, easing:"easeOutQuart" },
-          plugins:{ valueLabelsPlugin:false },
+          animation:{
+            duration:900,
+            easing:"easeOutQuart"
+          },
+          layout:{
+            padding:{
+              top:28,
+              bottom:70
+            }
+          },
+          plugins:{
+            valueLabelsPlugin:false
+          },
           scales:{
-            x:{ ticks:{ color:chartTextColour(), maxRotation:65, minRotation:35 }, grid:{ display:false } },
-            y:{ beginAtZero:true, ticks:{ color:chartTextColour(), precision:0 } }
+            x:{
+              ticks: chartXTickOptions(false),
+              grid:{ display:false }
+            },
+            y:{
+              beginAtZero:true,
+              ticks:{
+                color:chartTextColour(),
+                precision:0
+              },
+              grid:{
+                color:chartGridColour()
+              }
+            }
           }
         }
       });
@@ -945,6 +999,7 @@ body.light {
       const trainingSessions = store.trainingAttendance.length;
       const trainingAttendances = store.trainingAttendance.reduce((s,a) => s + safeNumber(a.count), 0);
       const averageTrainingFigure = trainingSessions > 0 ? trainingAttendances / trainingSessions : 0;
+
       const squadSize = store.players.length;
       const averageTrainingPercentage = trainingSessions > 0 && squadSize > 0
         ? (trainingAttendances / (trainingSessions * squadSize)) * 100
@@ -1004,7 +1059,13 @@ body.light {
     function renderGoals() {
       const filteredGoals = store.goals.filter(goalFilters);
 
-      drawBar("goalsByPlayer", "goalsByPlayerChart", store.players, goalTotals(filteredGoals), "rgba(37,99,235,.78)");
+      drawBar(
+        "goalsByPlayer",
+        "goalsByPlayerChart",
+        store.players,
+        goalTotals(filteredGoals),
+        "rgba(37,99,235,.78)"
+      );
 
       drawLine(
         "goalsTimeline",
@@ -1015,8 +1076,21 @@ body.light {
     }
 
     function renderAttendance() {
-      drawBar("matchAttendance", "matchAttendanceChart", store.players, attendanceTotals(store.matchAttendance), "rgba(37,99,235,.78)");
-      drawBar("trainingAttendance", "trainingAttendanceChart", store.players, attendanceTotals(store.trainingAttendance), "rgba(16,185,129,.82)");
+      drawBar(
+        "matchAttendance",
+        "matchAttendanceChart",
+        store.players,
+        attendanceTotals(store.matchAttendance),
+        "rgba(37,99,235,.78)"
+      );
+
+      drawBar(
+        "trainingAttendance",
+        "trainingAttendanceChart",
+        store.players,
+        attendanceTotals(store.trainingAttendance),
+        "rgba(16,185,129,.82)"
+      );
     }
 
     function isRealEvent(value) {
@@ -1026,6 +1100,7 @@ body.light {
 
     function eventTone(eventText) {
       const text = eventText.toLowerCase();
+
       if (text.includes("double hat trick")) return "🎩🎩 Double hat-trick alert";
       if (text.includes("hat trick")) return "🎩 Hat-trick watch";
       if (text.includes("pen")) return "⚽ Penalty drama";
@@ -1039,9 +1114,11 @@ body.light {
 
     function buildEventsTimeline() {
       const timeline = [];
+
       store.events.forEach(row => {
         Object.entries(row.events || {}).forEach(([player, eventText]) => {
           if (!isRealEvent(eventText)) return;
+
           timeline.push({
             date: row.date,
             opposition: row.opposition,
@@ -1051,6 +1128,7 @@ body.light {
           });
         });
       });
+
       return timeline.sort((a,b) => String(a.date).localeCompare(String(b.date)));
     }
 
@@ -1084,9 +1162,12 @@ body.light {
 
     function getPlayerEvents(player) {
       const events = [];
+
       store.events.forEach(row => {
         const eventText = row.events?.[player];
+
         if (!isRealEvent(eventText)) return;
+
         events.push({
           date: row.date,
           opposition: row.opposition,
@@ -1094,11 +1175,13 @@ body.light {
           tag: eventTone(String(eventText))
         });
       });
+
       return events.sort((a,b) => String(a.date).localeCompare(String(b.date)));
     }
 
     function getCardCounts(player) {
       const events = getPlayerEvents(player);
+
       return {
         yellow: events.filter(e => e.event.toLowerCase().includes("yellow")).length,
         red: events.filter(e => e.event.toLowerCase().includes("red")).length
@@ -1107,15 +1190,18 @@ body.light {
 
     function getInjuryDates(player) {
       const dates = new Set();
+
       [...store.matchAttendance, ...store.trainingAttendance].forEach(row => {
         const value = String(row.attendance?.[player] || "").toUpperCase();
         if (value === "I") dates.add(row.date);
       });
+
       return Array.from(dates).sort();
     }
 
     function renderPlayerButtons() {
       const grid = document.getElementById("playerGrid");
+
       grid.innerHTML = store.players.map(player => `
         <button class="player-button" data-player="${player}">${player}</button>
       `).join("");
@@ -1184,7 +1270,9 @@ body.light {
 
     function renderPlayers() {
       renderPlayerButtons();
+
       if (!selectedPlayer) selectedPlayer = store.players[0];
+
       renderPlayerProfile(selectedPlayer);
     }
 
@@ -1205,7 +1293,14 @@ body.light {
       });
 
       const activeThumb = document.querySelector(`.thumbnail[data-index="${currentGalleryIndex}"]`);
-      if (activeThumb) activeThumb.scrollIntoView({ behavior:"smooth", inline:"center", block:"nearest" });
+
+      if (activeThumb) {
+        activeThumb.scrollIntoView({
+          behavior:"smooth",
+          inline:"center",
+          block:"nearest"
+        });
+      }
     }
 
     function renderGallery() {
@@ -1236,6 +1331,7 @@ body.light {
     function setupFullscreenGallery() {
       document.getElementById("galleryImageWrap").addEventListener("click", () => {
         if (!galleryImages.length) return;
+
         document.getElementById("fullscreenImage").src = galleryImages[currentGalleryIndex];
         document.getElementById("fullscreen").classList.add("active");
       });
@@ -1283,32 +1379,33 @@ body.light {
       });
     }
 
-   function setupDarkMode() {
-  const toggle = document.getElementById("themeToggle");
-  const savedTheme = localStorage.getItem("theme");
+    function setupThemeToggle() {
+      const toggle = document.getElementById("themeToggle");
+      const savedTheme = localStorage.getItem("theme");
 
-  if (savedTheme === "light") {
-    document.body.classList.add("light");
-    toggle.textContent = "Dark Mode";
-  } else {
-    document.body.classList.remove("light");
-    toggle.textContent = "Light Mode";
-    localStorage.setItem("theme", "dark");
-  }
+      if (savedTheme === "light") {
+        document.body.classList.add("light");
+        toggle.textContent = "Dark Mode";
+      } else {
+        document.body.classList.remove("light");
+        toggle.textContent = "Light Mode";
+        localStorage.setItem("theme", "dark");
+      }
 
-  toggle.addEventListener("click", () => {
-    document.body.classList.toggle("light");
+      toggle.addEventListener("click", () => {
+        document.body.classList.toggle("light");
 
-    const isLight = document.body.classList.contains("light");
-    localStorage.setItem("theme", isLight ? "light" : "dark");
-    toggle.textContent = isLight ? "Dark Mode" : "Light Mode";
+        const isLight = document.body.classList.contains("light");
+        localStorage.setItem("theme", isLight ? "light" : "dark");
+        toggle.textContent = isLight ? "Dark Mode" : "Light Mode";
 
-    setTimeout(renderCurrentPage, 80);
-  });
-}
+        setTimeout(renderCurrentPage, 80);
+      });
+    }
 
     document.addEventListener("keydown", event => {
       const galleryActive = document.getElementById("gallery").classList.contains("active");
+
       if (!galleryActive) return;
 
       if (event.key === "ArrowLeft") showGalleryImage(currentGalleryIndex - 1);
@@ -1319,7 +1416,7 @@ body.light {
     loadData()
       .then(() => {
         setupTabs();
-        setupDarkMode();
+        setupThemeToggle();
         setupFullscreenGallery();
         setupVisitCounter();
 

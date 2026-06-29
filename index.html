@@ -1226,9 +1226,14 @@
             drillToGoals("Competitive Goals For", "All", "Both");
           }
 
-          if (drill === "competitive-goals-against") {
-            drillToResults("Competitive Games — Goals Against", m => isCompetitive(m));
-          }
+          
+if (drill === "competitive-goals-against") {
+  drillToResults(
+    "Competitive Games — Opposition Scored",
+    m => isCompetitive(m) && safeNumber(m.goalsAgainst) > 0
+  );
+}
+
 
           if (drill === "friendly-all") {
             drillToResults("Friendly Games", m => m.competition === "Friendly");
@@ -1250,9 +1255,14 @@
             drillToGoals("Friendly Goals For", "Friendly", "Both");
           }
 
-          if (drill === "friendly-goals-against") {
-            drillToResults("Friendly Games — Goals Against", m => m.competition === "Friendly");
-          }
+          
+if (drill === "friendly-goals-against") {
+  drillToResults(
+    "Friendly Games — Opposition Scored",
+    m => m.competition === "Friendly" && safeNumber(m.goalsAgainst) > 0
+  );
+}
+
 
           if (
             drill === "training-sessions" ||

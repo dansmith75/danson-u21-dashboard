@@ -283,6 +283,7 @@ main {
   justify-content:center;
   font-weight:bold;
   box-shadow:var(--shadow);
+  cursor:pointer;
 }
 
 .form-win {

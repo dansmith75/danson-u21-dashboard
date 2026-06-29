@@ -902,7 +902,7 @@
       const files = await response.json();
 
       galleryImages = files
-        .filter(file => file.type === "file" && /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name))
+        .filter(file => file.type === "file" && /\.(jpg|jpeg|png|gif|webp|mp4)$/i.test(file.name))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric:true }))
         .map(file => file.download_url);
     }

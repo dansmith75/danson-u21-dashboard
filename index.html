@@ -518,7 +518,7 @@
     <section id="gallery" class="page">
       <div class="card executive">
         <h2>Gallery</h2>
-        <p>Use the arrows to move through pictures, or pick one from the thumbnail wheel below.</p>
+        <p>Drop pictures into the <strong>gallery</strong> folder and they will appear here automatically.</p>
       </div>
 
       <div class="gallery-stage">
@@ -539,18 +539,12 @@
 
   <script>
     const DATA = "data/";
+    const GITHUB_GALLERY_API = "https://api.github.com/repos/dansmith75/danson-u21-dashboard/contents/gallery";
+
     let store = {};
     let charts = {};
+    let galleryImages = [];
     let currentGalleryIndex = 0;
-
-    const galleryImages = [
-      "gallery/photo-1.jpg",
-      "gallery/photo-2.jpg",
-      "gallery/photo-3.jpg",
-      "gallery/photo-4.jpg",
-      "gallery/photo-5.jpg",
-      "gallery/photo-6.jpg"
-    ];
 
     const valueLabelsPlugin = {
       id: "valueLabelsPlugin",
@@ -594,6 +588,25 @@
       return response.json();
     }
 
+    async function loadGalleryImages() {
+      const response = await fetch(GITHUB_GALLERY_API);
+
+      if (!response.ok) {
+        galleryImages = [];
+        return;
+      }
+
+      const files = await response.json();
+
+      galleryImages = files
+        .filter(file =>
+          file.type === "file" &&
+          /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
+        )
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+        .map(file => file.download_url);
+    }
+
     async function loadData() {
       store.matches = await getJson("matches");
       store.goals = await getJson("goals");
@@ -601,6 +614,8 @@
       store.matchAttendance = await getJson("match-attendance");
       store.trainingAttendance = await getJson("training-attendance");
       store.players = await getJson("players");
+
+      await loadGalleryImages();
     }
 
     function isCompetitive(match) {
@@ -891,11 +906,17 @@
     }
 
     function showGalleryImage(index) {
-      if (galleryImages.length === 0) return;
+      const mainImage = document.getElementById("galleryMainImage");
+
+      if (!galleryImages.length) {
+        mainImage.removeAttribute("src");
+        mainImage.alt = "No gallery images available";
+        document.getElementById("thumbnailStrip").innerHTML = "";
+        return;
+      }
 
       currentGalleryIndex = (index + galleryImages.length) % galleryImages.length;
 
-      const mainImage = document.getElementById("galleryMainImage");
       mainImage.src = galleryImages[currentGalleryIndex];
       mainImage.alt = `Gallery image ${currentGalleryIndex + 1}`;
 
@@ -915,6 +936,17 @@
 
     function renderGallery() {
       const strip = document.getElementById("thumbnailStrip");
+
+      if (!galleryImages.length) {
+        strip.innerHTML = `
+          <div class="card">
+            <h2>No gallery images found</h2>
+            <p>Add image files into the <strong>gallery</strong> folder.</p>
+          </div>
+        `;
+        showGalleryImage(0);
+        return;
+      }
 
       strip.innerHTML = galleryImages.map((src, index) => `
         <div class="thumbnail" data-index="${index}">
@@ -1015,3 +1047,4 @@
   </script>
 </body>
 </html>
+``

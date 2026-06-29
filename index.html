@@ -104,7 +104,8 @@
     .card:hover,
     .chart-container:hover,
     .stat:hover,
-    .event-card:hover {
+    .event-card:hover,
+    .player-button:hover {
       transform:translateY(-4px);
     }
 
@@ -170,6 +171,14 @@
 
     .stat.friendly {
       background:linear-gradient(135deg,#581c87,#a855f7);
+    }
+
+    .stat.warning {
+      background:linear-gradient(135deg,#92400e,#f59e0b);
+    }
+
+    .stat.danger {
+      background:linear-gradient(135deg,#7f1d1d,#ef4444);
     }
 
     .stat b {
@@ -254,6 +263,57 @@
       color:var(--text);
       border:1px solid var(--line);
       font-size:13px;
+    }
+
+    .player-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+      gap:12px;
+      margin-bottom:22px;
+    }
+
+    .player-button {
+      border:1px solid var(--line);
+      background:var(--card);
+      color:var(--text);
+      padding:14px 12px;
+      border-radius:16px;
+      cursor:pointer;
+      font-weight:bold;
+      box-shadow:var(--shadow);
+      transition:.25s;
+    }
+
+    .player-button.active {
+      background:linear-gradient(135deg,#0f172a,#2563eb);
+      color:white;
+      border-color:transparent;
+    }
+
+    .profile-header {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .profile-header h2 {
+      margin:0;
+      font-size:30px;
+    }
+
+    .profile-subtitle {
+      color:var(--muted);
+      margin-top:6px;
+    }
+
+    .injury-list,
+    .player-event-list {
+      margin:10px 0 0;
+      padding-left:18px;
+      color:var(--muted);
+      line-height:1.7;
     }
 
     .gallery-stage {
@@ -432,6 +492,7 @@
       <button class="tab-btn" data-page="goals">Goals</button>
       <button class="tab-btn" data-page="attendance">Attendance</button>
       <button class="tab-btn" data-page="events">Events</button>
+      <button class="tab-btn" data-page="players">Players</button>
       <button class="tab-btn" data-page="gallery">Gallery</button>
     </nav>
 
@@ -515,6 +576,15 @@
       <div class="timeline" id="eventsTimeline"></div>
     </section>
 
+    <section id="players" class="page">
+      <div class="card">
+        <h2>Select a Player</h2>
+        <div class="player-grid" id="playerGrid"></div>
+      </div>
+
+      <div id="playerProfile"></div>
+    </section>
+
     <section id="gallery" class="page">
       <div class="gallery-stage">
         <div class="gallery-main">
@@ -540,6 +610,7 @@
     let charts = {};
     let galleryImages = [];
     let currentGalleryIndex = 0;
+    let selectedPlayer = null;
 
     const valueLabelsPlugin = {
       id: "valueLabelsPlugin",
@@ -900,6 +971,146 @@
       `).join("");
     }
 
+    function getPlayerGoals(player) {
+      return store.goals.reduce((sum, row) => sum + safeNumber(row.goals?.[player]), 0);
+    }
+
+    function countAttendanceForPlayer(rows, player) {
+      return rows.reduce((sum, row) => {
+        const value = String(row.attendance?.[player] || "").toUpperCase();
+        return sum + (value === "Y" ? 1 : 0);
+      }, 0);
+    }
+
+    function getPlayerEvents(player) {
+      const events = [];
+
+      store.events.forEach(row => {
+        const eventText = row.events?.[player];
+
+        if (!isRealEvent(eventText)) return;
+
+        events.push({
+          date: row.date,
+          opposition: row.opposition,
+          event: String(eventText).trim(),
+          tag: eventTone(String(eventText))
+        });
+      });
+
+      return events.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    }
+
+    function getCardCounts(player) {
+      const events = getPlayerEvents(player);
+
+      return {
+        yellow: events.filter(e => e.event.toLowerCase().includes("yellow")).length,
+        red: events.filter(e => e.event.toLowerCase().includes("red")).length
+      };
+    }
+
+    function getInjuryDates(player) {
+      const dates = new Set();
+
+      [...store.matchAttendance, ...store.trainingAttendance].forEach(row => {
+        const value = String(row.attendance?.[player] || "").toUpperCase();
+
+        if (value === "I") {
+          dates.add(row.date);
+        }
+      });
+
+      return Array.from(dates).sort();
+    }
+
+    function renderPlayerButtons() {
+      const grid = document.getElementById("playerGrid");
+
+      grid.innerHTML = store.players.map(player => `
+        <button class="player-button" data-player="${player}">
+          ${player}
+        </button>
+      `).join("");
+
+      document.querySelectorAll(".player-button").forEach(button => {
+        button.addEventListener("click", () => {
+          selectedPlayer = button.dataset.player;
+          renderPlayerProfile(selectedPlayer);
+        });
+      });
+    }
+
+    function renderPlayerProfile(player) {
+      document.querySelectorAll(".player-button").forEach(button => {
+        button.classList.toggle("active", button.dataset.player === player);
+      });
+
+      const goals = getPlayerGoals(player);
+      const matchAttendance = countAttendanceForPlayer(store.matchAttendance, player);
+      const trainingAttendance = countAttendanceForPlayer(store.trainingAttendance, player);
+      const cards = getCardCounts(player);
+      const injuryDates = getInjuryDates(player);
+      const playerEvents = getPlayerEvents(player);
+
+      const profile = document.getElementById("playerProfile");
+
+      profile.innerHTML = `
+        <div class="card">
+          <div class="profile-header">
+            <div>
+              <h2>${player}</h2>
+              <div class="profile-subtitle">Player profile summary</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary">
+          <div class="stat"><b>${goals}</b><span>Goals</span></div>
+          <div class="stat"><b>${matchAttendance}</b><span>Match Attendances</span></div>
+          <div class="stat training"><b>${trainingAttendance}</b><span>Training Attendances</span></div>
+          <div class="stat warning"><b>${cards.yellow}</b><span>Yellow Cards</span></div>
+          <div class="stat danger"><b>${cards.red}</b><span>Red Cards</span></div>
+          <div class="stat"><b>${injuryDates.length}</b><span>Weeks Injured</span></div>
+        </div>
+
+        <div class="card">
+          <h2>Injury Weeks</h2>
+          ${
+            injuryDates.length
+              ? `<ul class="injury-list">${injuryDates.map(date => `<li>${date}</li>`).join("")}</ul>`
+              : `<p class="executive">No injured weeks recorded for ${player}.</p>`
+          }
+        </div>
+
+        <div class="card">
+          <h2>Events</h2>
+          ${
+            playerEvents.length
+              ? `<ul class="player-event-list">
+                  ${playerEvents.map(e => `
+                    <li>
+                      <strong>${e.date}</strong> — ${e.opposition}: ${e.event}
+                      <span class="event-badge">${e.tag}</span>
+                    </li>
+                  `).join("")}
+                </ul>`
+              : `<p class="executive">No events recorded for ${player}.</p>`
+          }
+        </div>
+      `;
+    }
+
+    function renderPlayers() {
+      renderPlayerButtons();
+
+      if (!selectedPlayer) {
+        selectedPlayer = store.players[0];
+      }
+
+      renderPlayerProfile(selectedPlayer);
+    }
+
     function showGalleryImage(index) {
       const mainImage = document.getElementById("galleryMainImage");
 
@@ -973,6 +1184,7 @@
       if (activePage === "goals") renderGoals();
       if (activePage === "attendance") renderAttendance();
       if (activePage === "events") renderEvents();
+      if (activePage === "players") renderPlayers();
       if (activePage === "gallery") renderGallery();
     }
 
@@ -1042,4 +1254,3 @@
   </script>
 </body>
 </html>
-``
